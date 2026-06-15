@@ -112,3 +112,4 @@ Source backlog: QA-RM-004
 ## Planning Notes
 
 Sprint 2 should not begin until Sprint 1 is reviewed. If Sprint 1 leaves unresolved auth, RLS, deployment, or testing debt, Sprint 2 should first reserve capacity for stabilization.
+

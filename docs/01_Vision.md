@@ -34,3 +34,4 @@ Later expansion may include schools, libraries, professional learning groups, co
 ## First-Version Focus
 
 The first version should stay focused on small private groups. Trust and comfort matter because users are more likely to share progress and reflections when they know the people seeing them.
+

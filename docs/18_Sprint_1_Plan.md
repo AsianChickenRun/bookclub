@@ -324,3 +324,4 @@ At the end of Sprint 1, the Product Manager should:
 - Identify technical debt.
 - Generate Sprint 2 implementation tickets.
 - Recommend priorities for Sprint 2.
+

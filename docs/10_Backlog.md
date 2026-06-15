@@ -6,6 +6,296 @@
 - P1: Important for MVP quality or early retention
 - P2: Post-MVP or advanced version
 
+## Sprint Gate
+
+Sprint 0 is the active sprint. No production feature development should begin until Sprint 0 exit criteria are met and the Product Manager approves Sprint 1.
+
+Sprint 1 is infrastructure-only. Major product systems such as Reading Momentum, XP, achievements, leaderboards, reviews, AI prompts, notifications, and Book of the Month are out of scope for Sprint 1.
+
+## Sprint 0: Planning And Documentation
+
+### S0-001: Consolidate Product Requirements Document
+
+Priority: P0
+
+Create a PRD that combines vision, problem, audience, MVP scope, core features, non-goals, assumptions, and success metrics.
+
+Acceptance criteria:
+
+- MVP is clearly defined.
+- MVP, post-MVP, and future ideas are separated.
+- Success metrics are included.
+- Source docs are referenced.
+
+Docs: 01_Vision.md, 04_Features.md, 09_Roadmap.md
+
+### S0-002: Define User Personas
+
+Priority: P0
+
+Create personas for the primary user segments.
+
+Acceptance criteria:
+
+- Includes casual reader, busy student, young professional, remote friend group member, audiobook listener, and spoiler-sensitive reader.
+- Each persona includes goals, motivations, pain points, trust concerns, and MVP needs.
+- Personas inform feature priorities.
+
+Docs: 01_Vision.md, 13_UX_Flows.md
+
+### S0-003: Complete Competitive Analysis
+
+Priority: P0
+
+Compare Reading Momentum against direct and adjacent competitors.
+
+Acceptance criteria:
+
+- Includes reading apps and habit apps.
+- Identifies table-stakes features, gaps, and differentiation.
+- Verified sources are used before claims are treated as evidence.
+
+Docs: 14_Research_Plan.md
+
+### S0-004: Define Technical Architecture
+
+Priority: P0
+
+Document the Sprint 1 technical architecture.
+
+Acceptance criteria:
+
+- Covers app structure, Supabase integration, environment variables, deployment, and local workflow.
+- Defines Sprint 1 scaffold versus deferred systems.
+- Provides enough direction for engineering implementation.
+
+Docs: 12_Database_Architecture.md, 18_Sprint_1_Plan.md
+
+### S0-005: Define API And Backend Boundaries
+
+Priority: P0
+
+Document server/client responsibilities and initial API contracts.
+
+Acceptance criteria:
+
+- Defines client-side Supabase access allowed by RLS.
+- Defines trusted server operations.
+- Covers profile, group, book, and check-in boundaries.
+
+Docs: 12_Database_Architecture.md
+
+### S0-006: Define Security And Authorization Model
+
+Priority: P0
+
+Document auth, authorization, privacy, RLS, and secrets handling.
+
+Acceptance criteria:
+
+- Private group access rules are explicit.
+- Profile and group membership permissions are explicit.
+- Spoiler controls are separated from privacy/security controls.
+- Sprint 1 security acceptance criteria are defined.
+
+Docs: 12_Database_Architecture.md, 16_QA_Risk_Register.md
+
+### S0-007: Define Testing Strategy
+
+Priority: P0
+
+Document testing expectations for Sprint 1 and later sprints.
+
+Acceptance criteria:
+
+- Includes unit, integration, end-to-end, accessibility, RLS, and smoke testing.
+- Defines minimum Sprint 1 tests.
+- Defines Definition of Done.
+
+Docs: 16_QA_Risk_Register.md
+
+### S0-008: Define Analytics Strategy
+
+Priority: P1
+
+Document analytics that measure reading behavior rather than app addiction.
+
+Acceptance criteria:
+
+- Includes activation, retention, check-in, group, review, and comeback metrics.
+- Defines initial events for implementation planning.
+- Avoids optimizing for time spent in app.
+
+Docs: 03_Research.md, 14_Research_Plan.md
+
+### S0-009: Define Style Guide And Brand Direction
+
+Priority: P1
+
+Document brand, tone, color, typography, accessibility, and component strategy.
+
+Acceptance criteria:
+
+- Reinforces calm, warm, motivating, low-pressure identity.
+- Includes accessibility constraints.
+- Gives enough direction for Sprint 1 UI shell.
+
+Docs: 08_UI_UX.md, 13_UX_Flows.md
+
+## Sprint 1: Project Foundation And Infrastructure
+
+### S1-001: Initialize Next.js Application
+
+Priority: P0
+
+Initialize the app foundation.
+
+Acceptance criteria:
+
+- Next.js app is created with TypeScript.
+- Tailwind CSS is configured.
+- App runs locally.
+- Initial folder structure is created.
+
+Docs: 18_Sprint_1_Plan.md
+
+### S1-002: Configure Code Quality Tooling
+
+Priority: P0
+
+Set up consistent linting and formatting.
+
+Acceptance criteria:
+
+- ESLint is configured.
+- Prettier is configured.
+- Lint and format commands are documented.
+- Initial skeleton passes lint.
+
+Docs: 18_Sprint_1_Plan.md
+
+### S1-003: Configure Supabase And Environment Variables
+
+Priority: P0
+
+Connect the app to Supabase safely.
+
+Acceptance criteria:
+
+- Supabase client strategy is implemented.
+- Required environment variables are documented.
+- Example environment file contains no real secrets.
+- Missing configuration fails safely.
+
+Docs: 12_Database_Architecture.md, 18_Sprint_1_Plan.md
+
+### S1-004: Create Initial Database Migrations
+
+Priority: P0
+
+Create initial database tables for profiles, groups, and membership.
+
+Acceptance criteria:
+
+- `profiles`, `groups`, and `group_members` exist.
+- Constraints and key indexes are included.
+- RLS is enabled.
+- Basic policies are implemented.
+
+Docs: 12_Database_Architecture.md
+
+### S1-005: Implement Authentication Pages
+
+Priority: P0
+
+Allow users to sign up, log in, and log out.
+
+Acceptance criteria:
+
+- Sign up works.
+- Log in works.
+- Log out works.
+- Auth loading and error states exist.
+- Redirects are predictable.
+
+Docs: 13_UX_Flows.md, 18_Sprint_1_Plan.md
+
+### S1-006: Implement Profile Creation And Editing
+
+Priority: P0
+
+Allow users to create and edit basic profiles.
+
+Acceptance criteria:
+
+- New users are prompted to create a profile.
+- Display name is required.
+- Optional fields do not block completion.
+- Users can edit their own profile.
+- Profile writes are protected by RLS.
+
+Docs: 04_Features.md, 12_Database_Architecture.md, 13_UX_Flows.md
+
+### S1-007: Build Application Shell And Navigation
+
+Priority: P0
+
+Create the mobile-first app shell.
+
+Acceptance criteria:
+
+- Authenticated app layout exists.
+- Primary navigation exists.
+- Placeholder pages exist for major future areas.
+- Navigation respects auth state.
+
+Docs: 13_UX_Flows.md
+
+### S1-008: Build Group Create And Join Foundation
+
+Priority: P0
+
+Create the private group foundation.
+
+Acceptance criteria:
+
+- User can create a group.
+- Creator becomes owner/member.
+- User can join through a basic controlled flow.
+- Non-members cannot view private group pages.
+
+Docs: 04_Features.md, 12_Database_Architecture.md, 16_QA_Risk_Register.md
+
+### S1-009: Configure Testing Framework
+
+Priority: P0
+
+Set up testing baseline.
+
+Acceptance criteria:
+
+- Unit test framework is configured.
+- Basic smoke test exists.
+- CI can run tests.
+- Test commands are documented.
+
+Docs: 18_Sprint_1_Plan.md
+
+### S1-010: Configure Deployment
+
+Priority: P0
+
+Deploy the application skeleton.
+
+Acceptance criteria:
+
+- App is deployed.
+- Production environment variables are configured securely.
+- Deployment workflow is documented.
+- Production URL is recorded.
+
+Docs: 18_Sprint_1_Plan.md
+
 ## Phase 1: Foundation
 
 ### RM-001: Create Account And Profile

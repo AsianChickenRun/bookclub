@@ -34,3 +34,4 @@ The data model should separate:
 - Scoring, XP, achievements, and notifications
 
 This separation keeps the app flexible as social activity, scoring, reviews, and Book of the Month features evolve.
+

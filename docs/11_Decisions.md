@@ -1,5 +1,133 @@
 # Decision Log
 
+## 2026-06-15: Complete Sprint 2 As Local Current-Book And Check-In Foundation
+
+Decision: Sprint 2 is accepted as complete for local current-book and check-in foundation.
+
+Reason: Users can now add current books, see books, complete basic check-ins, choose visibility, mark skipped days, and view reading log history. The data shape is ready for Supabase migration when credentials are available.
+
+Alternatives considered:
+
+- Keep Sprint 2 open until Supabase persistence is available
+- Add scoring before group feed
+- Add AI prompts before discussion foundations
+
+Research support: Pending. This is a PM sprint governance decision based on implemented scope and roadmap sequencing.
+
+Future review date: Sprint 3 review.
+
+## 2026-06-15: Start Sprint 3 With Group Activity And Discussion Foundation
+
+Decision: Sprint 3 should focus on group activity feed and discussion foundations.
+
+Reason: Sprint 2 created check-ins with visibility and local reading logs. The next highest-value step is making group-visible activity appear in private groups, then adding basic discussion posts. Scoring, AI, reviews, and notifications still depend on more social and reading data foundations.
+
+Alternatives considered:
+
+- Build scoring next
+- Build reviews next
+- Build AI prompts next
+- Focus only on Supabase migration while credentials are blocked
+
+Research support: Pending.
+
+Future review date: Sprint 3 review.
+
+## 2026-06-15: Complete Sprint 1 As Local Foundation
+
+Decision: Sprint 1 is accepted as complete for local foundation and visible prototype readiness.
+
+Reason: The project now has a working Next.js app shell, local mock account/profile/group flows, Supabase client scaffolding, initial database migration, CI workflow, and passing lint/typecheck/build. Real Supabase persistence, deployment, and GitHub sync require external credentials or connector availability and are tracked as carryover infrastructure blockers.
+
+Alternatives considered:
+
+- Keep Sprint 1 open until Supabase credentials and deployment are available
+- Stop after app shell without local functional flows
+- Start product features without documenting the credential blockers
+
+Research support: Pending. This is a PM sprint governance decision based on delivery progress and external dependency constraints.
+
+Future review date: Sprint 2 midpoint.
+
+## 2026-06-15: Start Sprint 2 With Local-First Current Book And Check-In Foundation
+
+Decision: Sprint 2 may begin with current book tracking and basic reading check-ins using local persistence first, while keeping data shapes Supabase-ready.
+
+Reason: Local-first implementation lets the product habit loop become visible without waiting on Supabase credentials. The work remains aligned with the roadmap and avoids advanced systems such as scoring, AI, reviews, notifications, and gamification.
+
+Alternatives considered:
+
+- Wait for Supabase credentials before any Sprint 2 feature work
+- Build scoring or AI before check-ins
+- Continue planning only
+
+Research support: Pending.
+
+Future review date: Sprint 2 review.
+
+## 2026-06-15: Approve Minimum Sprint 0 Gate And Start Sprint 1
+
+Decision: The PM approved the minimum Sprint 0 gate and authorized Sprint 1 infrastructure work to begin.
+
+Reason: The project now has enough planning coverage to safely begin infrastructure: operating model, vision, PRD draft, personas, roadmap, backlog, database architecture, UX flows, technical architecture, API/backend boundaries, security model, testing strategy, analytics strategy, and Sprint 1 plan. Remaining planning gaps are non-blocking and can continue as parallel mini-sprints.
+
+Alternatives considered:
+
+- Wait for every Sprint 0 document to reach final polish before implementation
+- Start feature development immediately
+- Start only more planning work and keep engineering blocked
+
+Research support: Pending. This is a PM execution decision based on documented sprint gates and project momentum.
+
+Future review date: Sprint 1 review.
+
+## 2026-06-15: Continue Non-Blocking Planning In Parallel With Sprint 1
+
+Decision: Competitive analysis refinement, growth positioning, Sprint 1 UX checklist, Sprint 1 QA checklist, and database migration checklist may continue in parallel while Sprint 1 infrastructure begins.
+
+Reason: These workstreams improve implementation quality but should not block safe infrastructure work such as app scaffold, navigation shell, tooling, and documentation workflow.
+
+Alternatives considered:
+
+- Block Sprint 1 until all mini-sprints finish
+- Defer all planning until after implementation
+
+Research support: Pending.
+
+Future review date: During Sprint 1 planning review.
+
+## 2026-06-15: Gate Implementation Behind Sprint 0 Approval
+
+Decision: No production feature development should begin until Sprint 0 planning, architecture, and documentation exit criteria are complete and approved by the Product Manager.
+
+Reason: Reading Momentum depends on tightly connected product systems: private groups, spoiler safety, progress tracking, scoring, AI prompts, and supportive accountability. Starting implementation before the blueprint is complete would increase rework and trust-risk.
+
+Alternatives considered:
+
+- Begin implementation from the existing backlog immediately
+- Build the app shell while product systems are still unresolved
+- Let each specialist agent define implementation scope independently
+
+Research support: Pending. This is a project management control decision based on complexity and dependency risk.
+
+Future review date: End of Sprint 0.
+
+## 2026-06-15: Sprint 1 Is Infrastructure-Only
+
+Decision: Sprint 1 will focus on project foundation and infrastructure: Next.js, TypeScript, Tailwind, Supabase, auth, profiles, private group foundation, navigation, deployment, and testing workflow.
+
+Reason: The application needs a stable technical base before implementing Reading Momentum, XP, reviews, AI, notifications, or gamification.
+
+Alternatives considered:
+
+- Include check-ins in Sprint 1
+- Include scoring in Sprint 1
+- Include AI prompts in Sprint 1
+
+Research support: Pending. This is an execution sequencing decision based on dependency order.
+
+Future review date: Sprint 1 review.
+
 ## 2026-06-15: Start With A Mobile-First Website
 
 Decision: The first version will be a mobile-first web application, not a native mobile app.

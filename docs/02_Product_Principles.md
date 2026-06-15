@@ -52,3 +52,4 @@ Product decisions:
 - Keep notifications useful and limited.
 - Use weekly rituals instead of constant engagement loops.
 - Make the dashboard guide users back to reading.
+

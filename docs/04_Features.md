@@ -89,3 +89,4 @@ Requirement: Users should not automatically see thoughts from later progress poi
 Groups may optionally nominate and vote on a shared Book of the Month. No user should be required to read the winner.
 
 Future weighting factors may include nominations, votes, genre fit, time since last nomination, past group interest, positive reviews, and randomness.
+
