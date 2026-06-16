@@ -22,6 +22,7 @@ Move the Vercel deployment closer to a working product experience by removing in
 - Added a calmer Reading Momentum visual theme with warmer paper surfaces, sage/clay accents, clearer focus states, and more polished navigation/header/empty-state components.
 - Added an app-facing repository boundary so pages no longer call local storage helpers directly.
 - Routed sign-in, onboarding, settings, books, today, and groups through the repository boundary to prepare for Supabase-backed persistence.
+- Added a local Reading Momentum summary on Today with current streak, active days, group shares, reflections, and a simple consistency-weighted score.
 - Kept Supabase/cloud persistence out of scope for this slice.
 
 ## Verification
@@ -50,5 +51,5 @@ Move the Vercel deployment closer to a working product experience by removing in
 Make the deployed preview functionally stronger by adding one of:
 
 1. Supabase-backed auth/profile/group persistence if credentials and migration approval are available.
-2. Basic streak or momentum summary using the existing local check-in history.
-3. Repository-backed tests for the app-facing persistence contract.
+2. Repository-backed tests for the app-facing persistence contract.
+3. Persist the Reading Momentum score in Supabase once check-ins are cloud-backed.

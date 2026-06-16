@@ -13,6 +13,59 @@ import {
 
 const units: CheckInUnit[] = ["pages", "chapters", "minutes", "audiobook_minutes", "sessions"];
 
+function startOfLocalDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function dateKey(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function daysAgo(days: number) {
+  const date = startOfLocalDay(new Date());
+  date.setDate(date.getDate() - days);
+  return date;
+}
+
+function getMomentumSummary(state: MockAppState | null) {
+  const logs = state?.readingLogs ?? [];
+  const activeLogs = logs.filter((log) => !log.skipped);
+  const activeDates = new Set(activeLogs.map((log) => log.loggedForDate));
+  const today = startOfLocalDay(new Date());
+  const lastSevenDateKeys = Array.from({ length: 7 }, (_, index) => dateKey(daysAgo(index)));
+  const activeDaysThisWeek = lastSevenDateKeys.filter((key) => activeDates.has(key)).length;
+  const groupSharedThisWeek = logs.filter(
+    (log) => lastSevenDateKeys.includes(log.loggedForDate) && log.visibility === "groups"
+  ).length;
+  const notesThisWeek = logs.filter(
+    (log) => lastSevenDateKeys.includes(log.loggedForDate) && log.note.trim()
+  ).length;
+
+  let streak = 0;
+  for (let offset = 0; offset < 30; offset += 1) {
+    const key = dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() - offset));
+    if (!activeDates.has(key)) {
+      break;
+    }
+    streak += 1;
+  }
+
+  const score = Math.min(
+    100,
+    activeDaysThisWeek * 12 + Math.min(groupSharedThisWeek, 4) * 6 + Math.min(notesThisWeek, 4) * 4
+  );
+
+  return {
+    activeDaysThisWeek,
+    groupSharedThisWeek,
+    notesThisWeek,
+    score,
+    streak
+  };
+}
+
 export default function TodayPage() {
   const [state, setState] = useState<MockAppState | null>(null);
   const [selectedBookId, setSelectedBookId] = useState("");
@@ -41,6 +94,7 @@ export default function TodayPage() {
 
   const groupCount = state?.groups.length ?? 0;
   const recentLogs = state?.readingLogs.slice(0, 5) ?? [];
+  const momentum = getMomentumSummary(state);
 
   async function handleCheckIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -111,7 +165,7 @@ export default function TodayPage() {
             <p className="eyebrow">Current book</p>
             <h2 className="mt-3 text-2xl font-black text-ink">{currentBook.title}</h2>
             <p className="mt-2 text-slate-700">
-              {currentBook.author || "Unknown author"} · {currentBook.format} ·{" "}
+              {currentBook.author || "Unknown author"} - {currentBook.format} -{" "}
               {currentBook.goalType}
             </p>
             <dl className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -231,6 +285,41 @@ export default function TodayPage() {
         </form>
 
         <section className="soft-card p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="eyebrow">Reading momentum</p>
+              <h2 className="mt-3 text-2xl font-black text-ink">{momentum.score}/100</h2>
+            </div>
+            <span className="rounded-app bg-[#dfece4] px-3 py-1 text-xs font-black text-moss">
+              Local score
+            </span>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-slate-700">
+            Momentum favors consistency first, then reflection and group-visible updates.
+          </p>
+          <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+              <dt className="text-xs font-bold text-slate-500">Current streak</dt>
+              <dd className="mt-1 font-black text-ink">
+                {momentum.streak} {momentum.streak === 1 ? "day" : "days"}
+              </dd>
+            </div>
+            <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+              <dt className="text-xs font-bold text-slate-500">Active days</dt>
+              <dd className="mt-1 font-black text-ink">{momentum.activeDaysThisWeek}/7</dd>
+            </div>
+            <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+              <dt className="text-xs font-bold text-slate-500">Group shares</dt>
+              <dd className="mt-1 font-black text-ink">{momentum.groupSharedThisWeek}</dd>
+            </div>
+            <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+              <dt className="text-xs font-bold text-slate-500">Reflections</dt>
+              <dd className="mt-1 font-black text-ink">{momentum.notesThisWeek}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="soft-card p-5">
           <h2 className="text-xl font-black text-ink">Recent check-ins</h2>
           <div className="mt-4 grid gap-3">
             {recentLogs.length ? (
@@ -240,7 +329,7 @@ export default function TodayPage() {
                   <article className="rounded-app border border-[#dedbd2] bg-white p-4" key={log.id}>
                     <h3 className="font-black text-ink">{book?.title ?? "Unknown book"}</h3>
                     <p className="mt-1 text-sm text-slate-700">
-                      {log.skipped ? "Skipped today" : `${log.amount} ${log.unit}`} ·{" "}
+                      {log.skipped ? "Skipped today" : `${log.amount} ${log.unit}`} -{" "}
                       {log.visibility}
                     </p>
                     {log.note ? <p className="mt-2 text-sm text-slate-600">{log.note}</p> : null}
