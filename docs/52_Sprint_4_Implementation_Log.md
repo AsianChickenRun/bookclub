@@ -23,11 +23,14 @@ Move the Vercel deployment closer to a working product experience by removing in
 - Added an app-facing repository boundary so pages no longer call local storage helpers directly.
 - Routed sign-in, onboarding, settings, books, today, and groups through the repository boundary to prepare for Supabase-backed persistence.
 - Added a local Reading Momentum summary on Today with current streak, active days, group shares, reflections, and a simple consistency-weighted score.
+- Added a compile-time repository contract check so CI protects the app-facing persistence boundary.
+- Added `docs/53_Sprint_5_Persistence_Activation_Plan.md` to define the next persistence sprint.
 - Kept Supabase/cloud persistence out of scope for this slice.
 
 ## Verification
 
 - `pnpm run lint` passed.
+- `pnpm run typecheck` passed.
 - `pnpm run build` passed.
 - Production build generated all current routes:
   - `/`
@@ -51,5 +54,5 @@ Move the Vercel deployment closer to a working product experience by removing in
 Make the deployed preview functionally stronger by adding one of:
 
 1. Supabase-backed auth/profile/group persistence if credentials and migration approval are available.
-2. Repository-backed tests for the app-facing persistence contract.
-3. Persist the Reading Momentum score in Supabase once check-ins are cloud-backed.
+2. Persist books, check-ins, groups, discussions, replies, and momentum through the repository.
+3. Validate Supabase RLS with multi-user test evidence.
