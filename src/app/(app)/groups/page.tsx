@@ -101,7 +101,7 @@ export default function GroupsPage() {
       <PageHeader
         eyebrow="Group"
         title="Private groups with a living feed."
-        description="Sprint 3 connects group-visible check-ins to activity and adds a lightweight discussion foundation with spoiler metadata."
+        description="Create a private room, share group-visible check-ins, and start spoiler-aware discussions with friends."
       />
       <div className="grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
         <form className="soft-card grid gap-4 p-5" onSubmit={handleCreate}>
@@ -123,7 +123,7 @@ export default function GroupsPage() {
             />
           </label>
           <button className="primary-button" type="submit">
-            Create local group
+            Create group
           </button>
         </form>
         <form className="soft-card grid gap-4 p-5" onSubmit={handleJoin}>
@@ -137,7 +137,7 @@ export default function GroupsPage() {
             />
           </label>
           <button className="secondary-button" type="submit">
-            Join local group
+            Join group
           </button>
         </form>
         <section className="soft-card p-5 lg:row-span-2">
@@ -276,7 +276,7 @@ export default function GroupsPage() {
               ))
             ) : (
               <p className="rounded-app border border-[#dedbd2] bg-white p-4 text-slate-700">
-                No groups yet. Create or join one to unlock the Sprint 3 feed.
+                No groups yet. Create or join one to unlock the group feed.
               </p>
             )}
           </div>

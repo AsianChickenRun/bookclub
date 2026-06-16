@@ -38,13 +38,13 @@ export default function OnboardingPage() {
     <main className="page-shell">
       <section className="content-wrap flex min-h-screen items-center justify-center py-10">
         <div className="soft-card w-full max-w-xl p-6">
-          <p className="eyebrow">Profile setup mock</p>
+          <p className="eyebrow">Profile setup</p>
           <h1 className="mt-3 text-3xl font-black text-ink">
             Set up your reading identity.
           </h1>
           <p className="mt-3 leading-7 text-slate-700">
-            Sprint 1 will connect this flow to profiles. Optional fields should
-            never block a new reader from reaching the app.
+            Give your group a name to recognize. Optional fields help shape
+            recommendations later, but they should never block you from reading.
           </p>
           <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
             <label className="grid gap-2 text-sm font-bold text-slate-700">

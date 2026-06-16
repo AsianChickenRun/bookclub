@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 const previewStats = [
-  { label: "Current sprint", value: "Sprint 1" },
-  { label: "Scope", value: "Infrastructure" },
-  { label: "Product systems", value: "Deferred" }
+  { label: "Private groups", value: "Create or join" },
+  { label: "Reading flow", value: "Books and check-ins" },
+  { label: "Discussions", value: "Spoiler-aware" }
 ];
 
 export default function HomePage() {
@@ -16,23 +16,23 @@ export default function HomePage() {
             Keep reading with friends, without making everyone read the same book.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-700">
-            A calm app foundation for private groups, quick check-ins, and
-            supportive accountability. Sprint 1 is building the shell before
-            deeper product systems turn on.
+            Track current books, check in quickly, and share gentle momentum
+            with a private group. This early version saves progress in this
+            browser while cloud sync is being prepared.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link className="primary-button" href="/today">
-              View app shell
+              Open Reading Momentum
             </Link>
             <Link className="secondary-button" href="/sign-in">
-              Sign in mock
+              Sign in
             </Link>
           </div>
         </div>
 
         <div className="soft-card p-5">
           <div className="rounded-app border border-[#dedbd2] bg-paper p-5">
-            <p className="eyebrow">Build status</p>
+            <p className="eyebrow">What works now</p>
             <div className="mt-5 grid gap-3">
               {previewStats.map((item) => (
                 <div

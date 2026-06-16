@@ -104,7 +104,7 @@ export default function TodayPage() {
       <PageHeader
         eyebrow="Today"
         title={`Good to see you, ${displayName}.`}
-        description="Sprint 2 adds the first local reading habit loop: current books, quick check-ins, visibility, and reading history."
+        description="Log today's reading in under a minute, choose who can see it, and keep your recent progress close."
       />
       <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         {currentBook ? (

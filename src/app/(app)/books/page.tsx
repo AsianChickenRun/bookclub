@@ -87,7 +87,7 @@ export default function BooksPage() {
     setTotalChapters("");
     setCurrentPage("");
     setCurrentChapter("");
-    setMessage("Book added locally for Sprint 2.");
+    setMessage("Book added to your current reading list.");
   }
 
   return (
@@ -95,7 +95,7 @@ export default function BooksPage() {
       <PageHeader
         eyebrow="Books"
         title="Add the book you are already reading."
-        description="Sprint 2 adds current book tracking with local persistence and Supabase-ready data shape."
+        description="Track current books by pages, chapters, minutes, or sessions so check-ins stay quick."
       />
       <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <form className="soft-card grid gap-4 p-5" onSubmit={handleSubmit}>

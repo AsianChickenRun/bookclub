@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-06-16: Harden Vercel Preview Before Persistence Expansion
+
+Decision: Sprint 4 may include deployment hardening that makes the live Vercel preview feel product-ready, while keeping local-first storage and deferring Supabase-backed persistence until access is confirmed.
+
+Reason: The public deployment exists and should no longer expose internal sprint, mock, or placeholder language to users. A cleaner deployed preview helps validate the habit loop while the platform waits on cloud persistence work.
+
+Alternatives considered:
+
+- Move directly into Supabase without confirming access and migration authority
+- Keep the deployed site as an engineering prototype
+- Start XP, AI, or reviews before the current preview feels coherent
+
+Research support: The synced deployed code contained user-facing sprint/mock language on the landing page, auth, onboarding, settings, books, today, groups, and reviews screens.
+
+Future review date: After Vercel redeploy and live smoke check.
+
 ## 2026-06-15: Complete Sprint 2 As Local Current-Book And Check-In Foundation
 
 Decision: Sprint 2 is accepted as complete for local current-book and check-in foundation.

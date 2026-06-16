@@ -14,7 +14,7 @@ export default function SignInPage() {
     event.preventDefault();
 
     if (!email.trim() || !password.trim()) {
-      setMessage("Email and password are required for this Sprint 1 mock.");
+      setMessage("Email and password are required.");
       return;
     }
 
@@ -27,11 +27,11 @@ export default function SignInPage() {
     <main className="page-shell">
       <section className="content-wrap flex min-h-screen items-center justify-center py-10">
         <div className="soft-card w-full max-w-md p-6">
-          <p className="eyebrow">Sign in mock</p>
+          <p className="eyebrow">Sign in</p>
           <h1 className="mt-3 text-3xl font-black text-ink">Welcome back</h1>
           <p className="mt-3 leading-7 text-slate-700">
-            Authentication wiring belongs to Sprint 1. This screen establishes
-            the page shape before Supabase is connected.
+            Use any email and password to enter this local-first preview.
+            Your reading data stays in this browser until cloud accounts are connected.
           </p>
           <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
             <label className="grid gap-2 text-sm font-bold text-slate-700">
@@ -49,7 +49,7 @@ export default function SignInPage() {
               <input
                 className="min-h-11 rounded-app border border-[#dedbd2] px-3"
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="••••••••"
+                placeholder="Password"
                 type="password"
                 value={password}
               />

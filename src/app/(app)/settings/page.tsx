@@ -36,7 +36,7 @@ export default function SettingsPage() {
       favoriteGenres: favoriteGenres.trim(),
       timezone
     });
-    setMessage("Profile saved locally for Sprint 1 verification.");
+    setMessage("Profile saved in this browser.");
   }
 
   function handleSignOut() {
@@ -49,7 +49,7 @@ export default function SettingsPage() {
       <PageHeader
         eyebrow="Settings"
         title="Account and preference controls."
-        description="Sprint 1 prepares profile and environment foundations. Notification preferences are deferred until their product rules are ready."
+        description="Update your reading profile, review this browser-based preview mode, or reset the local session."
       />
       <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         <form className="soft-card grid gap-4 p-5" onSubmit={handleSave}>
@@ -88,10 +88,10 @@ export default function SettingsPage() {
           </button>
         </form>
         <section className="soft-card p-5">
-          <h2 className="text-xl font-black text-ink">Sprint 1 controls</h2>
+          <h2 className="text-xl font-black text-ink">Preview controls</h2>
           <p className="mt-2 leading-7 text-slate-700">
-            Notification preferences stay out of scope until the notification
-            system is ready. This panel currently verifies local session reset.
+            This deployed preview saves data in your current browser. Cloud sync,
+            shared accounts, and notifications will come after the database is connected.
           </p>
           <button className="secondary-button mt-5" onClick={handleSignOut} type="button">
             Clear local session

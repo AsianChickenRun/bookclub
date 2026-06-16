@@ -6,12 +6,12 @@ export default function ReviewsPage() {
     <>
       <PageHeader
         eyebrow="Reviews"
-        title="Reviews are planned, not active yet."
-        description="Final reviews and live review timelines are important product systems, but they depend on book tracking and spoiler rules."
+        title="Reviews are coming next."
+        description="Final reviews and live reflections will connect to your books, progress, and spoiler preferences."
       />
       <PlaceholderCard
-        description="This placeholder keeps the app architecture ready while review implementation stays out of Sprint 1."
-        title="Review system deferred"
+        description="For now, keep checking in and building your reading history. Reviews will become more useful once books and groups are connected to cloud accounts."
+        title="Review tools are not active yet"
       />
     </>
   );
