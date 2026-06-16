@@ -10,6 +10,8 @@ type RepositoryContract = {
   mode: "local" | "supabase_pending";
   getState(): Promise<MockAppState>;
   getMostRecentBook(state: MockAppState): MockAppState["books"][number] | undefined;
+  exportState(): Promise<string>;
+  importState(serializedState: string): Promise<MockAppState>;
   signIn(email: string): Promise<MockAppState>;
   saveProfile(profile: MockProfile): Promise<MockAppState>;
   createGroup(name: string, description: string): Promise<MockAppState>;

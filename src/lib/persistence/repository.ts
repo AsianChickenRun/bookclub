@@ -9,7 +9,8 @@ import {
   joinMockGroup,
   readMockState,
   saveMockProfile,
-  signInMockUser
+  signInMockUser,
+  writeMockState
 } from "@/lib/mock-app-state";
 import type {
   CheckInUnit,
@@ -67,6 +68,8 @@ export type ReadingMomentumRepository = {
   mode: "local" | "supabase_pending";
   getState(): Promise<MockAppState>;
   getMostRecentBook(state: MockAppState): ReturnType<typeof getMostRecentBook>;
+  exportState(): Promise<string>;
+  importState(serializedState: string): Promise<MockAppState>;
   signIn(email: string): Promise<MockAppState>;
   saveProfile(profile: MockProfile): Promise<MockAppState>;
   createGroup(name: string, description: string): Promise<MockAppState>;
@@ -86,6 +89,24 @@ function createLocalRepository(): ReadingMomentumRepository {
     },
     getMostRecentBook(state) {
       return getMostRecentBook(state);
+    },
+    async exportState() {
+      return JSON.stringify(readMockState(), null, 2);
+    },
+    async importState(serializedState) {
+      const parsed = JSON.parse(serializedState) as Partial<MockAppState>;
+      const nextState: MockAppState = {
+        user: parsed.user ?? null,
+        profile: parsed.profile ?? null,
+        groups: parsed.groups ?? [],
+        books: parsed.books ?? [],
+        readingLogs: parsed.readingLogs ?? [],
+        activities: parsed.activities ?? [],
+        discussionPosts: parsed.discussionPosts ?? [],
+        discussionComments: parsed.discussionComments ?? []
+      };
+      writeMockState(nextState);
+      return nextState;
     },
     async signIn(email) {
       return signInMockUser(email);

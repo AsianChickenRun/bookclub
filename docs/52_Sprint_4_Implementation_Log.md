@@ -25,6 +25,9 @@ Move the Vercel deployment closer to a working product experience by removing in
 - Added a local Reading Momentum summary on Today with current streak, active days, group shares, reflections, and a simple consistency-weighted score.
 - Added a compile-time repository contract check so CI protects the app-facing persistence boundary.
 - Added `docs/53_Sprint_5_Persistence_Activation_Plan.md` to define the next persistence sprint.
+- Added explicit persistence-mode status in Settings so local preview mode and pending Supabase mode are visible.
+- Added local backup and restore controls so users can move or protect browser-local preview data before cloud sync is active.
+- Required `NEXT_PUBLIC_ENABLE_SUPABASE=true` before Supabase mode can be considered configured.
 - Kept Supabase/cloud persistence out of scope for this slice.
 
 ## Verification

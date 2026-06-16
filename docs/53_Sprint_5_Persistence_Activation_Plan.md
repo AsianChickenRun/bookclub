@@ -17,6 +17,7 @@ Sprint 5 implementation may begin when:
 
 - Supabase project URL is confirmed.
 - Supabase anon key is available through an approved secret channel.
+- `NEXT_PUBLIC_ENABLE_SUPABASE=true` is approved for the target environment.
 - Migration execution is approved for the target project.
 - Vercel environment variable ownership is confirmed.
 - A disposable test path or approved test data strategy exists.
@@ -108,6 +109,7 @@ Set production env vars and verify the deployed site uses Supabase mode.
 Acceptance criteria:
 
 - Vercel has required public Supabase env vars.
+- Vercel has `NEXT_PUBLIC_ENABLE_SUPABASE=true` only after Supabase repository behavior is ready.
 - Build remains green.
 - Live deployment supports real account and persistence flows.
 - Local fallback remains documented.
