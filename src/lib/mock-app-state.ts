@@ -283,30 +283,29 @@ export function addMockReadingLog(input: {
     return nextBook;
   });
 
+  const activity: MockActivity | null = group
+    ? {
+        id: crypto.randomUUID(),
+        groupId: group.id,
+        actorName: current.profile?.displayName ?? "Reader",
+        type: "check_in",
+        summary: input.skipped
+          ? "Marked today as a skipped reading day."
+          : `Checked in with ${input.amount} ${input.unit}.`,
+        bookTitle: book?.title ?? null,
+        relatedId: log.id,
+        spoilerLevel: "none",
+        spoilerPage: null,
+        spoilerChapter: null,
+        createdAt: now.toISOString()
+      }
+    : null;
+
   const nextState = {
     ...current,
     books,
     readingLogs: [log, ...current.readingLogs],
-    activities: group
-      ? [
-          {
-            id: crypto.randomUUID(),
-            groupId: group.id,
-            actorName: current.profile?.displayName ?? "Reader",
-            type: "check_in",
-            summary: input.skipped
-              ? "Marked today as a skipped reading day."
-              : `Checked in with ${input.amount} ${input.unit}.`,
-            bookTitle: book?.title ?? null,
-            relatedId: log.id,
-            spoilerLevel: "none",
-            spoilerPage: null,
-            spoilerChapter: null,
-            createdAt: now.toISOString()
-          },
-          ...current.activities
-        ]
-      : current.activities
+    activities: activity ? [activity, ...current.activities] : current.activities
   };
   writeMockState(nextState);
   return nextState;
