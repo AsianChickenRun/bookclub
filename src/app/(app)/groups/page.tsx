@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import {
+  addMockDiscussionComment,
   addMockDiscussionPost,
   createMockGroup,
   joinMockGroup,
@@ -30,27 +31,39 @@ export default function GroupsPage() {
   const [spoilerPage, setSpoilerPage] = useState("");
   const [spoilerChapter, setSpoilerChapter] = useState("");
   const [message, setMessage] = useState("");
+  const [activeGroupId, setActiveGroupId] = useState("");
+  const [revealedPostIds, setRevealedPostIds] = useState<Set<string>>(new Set());
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    setState(readMockState());
+    const nextState = readMockState();
+    setState(nextState);
+    setActiveGroupId(nextState.groups[0]?.id ?? "");
   }, []);
 
-  const activeGroup = state?.groups[0];
-  const activeActivities = activeGroup
+  const activeGroup =
+    state?.groups.find((group) => group.id === activeGroupId) ?? state?.groups[0];
+  const activeActivities = state && activeGroup
     ? state.activities.filter((activity) => activity.groupId === activeGroup.id).slice(0, 8)
     : [];
-  const activePosts = activeGroup
+  const activePosts = state && activeGroup
     ? state.discussionPosts.filter((post) => post.groupId === activeGroup.id).slice(0, 4)
     : [];
 
   function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setState(createMockGroup(name.trim() || "Untitled group", description.trim()));
+    const nextState = createMockGroup(name.trim() || "Untitled group", description.trim());
+    setState(nextState);
+    setActiveGroupId(nextState.groups[0]?.id ?? "");
+    setMessage("Group created.");
   }
 
   function handleJoin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setState(joinMockGroup(inviteCode));
+    const nextState = joinMockGroup(inviteCode);
+    setState(nextState);
+    setActiveGroupId(nextState.groups[0]?.id ?? "");
+    setMessage("Group joined.");
   }
 
   function handleDiscussion(event: FormEvent<HTMLFormElement>) {
@@ -82,6 +95,33 @@ export default function GroupsPage() {
     setSpoilerPage("");
     setSpoilerChapter("");
     setMessage("Discussion posted to the group feed.");
+  }
+
+  function handleReply(event: FormEvent<HTMLFormElement>, postId: string) {
+    event.preventDefault();
+    const body = replyDrafts[postId]?.trim();
+
+    if (!body) {
+      setMessage("Write a reply before posting.");
+      return;
+    }
+
+    const nextState = addMockDiscussionComment({ postId, body });
+    setState(nextState);
+    setReplyDrafts((current) => ({ ...current, [postId]: "" }));
+    setMessage("Reply added.");
+  }
+
+  function toggleReveal(postId: string) {
+    setRevealedPostIds((current) => {
+      const next = new Set(current);
+      if (next.has(postId)) {
+        next.delete(postId);
+      } else {
+        next.add(postId);
+      }
+      return next;
+    });
   }
 
   function formatSpoilerLabel(level: SpoilerLevel) {
@@ -154,6 +194,25 @@ export default function GroupsPage() {
               </span>
             ) : null}
           </div>
+
+          {state?.groups.length ? (
+            <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+              {state.groups.map((group) => (
+                <button
+                  className={`rounded-app border px-3 py-2 text-sm font-bold ${
+                    activeGroup?.id === group.id
+                      ? "border-[#315c48] bg-[#315c48] text-white"
+                      : "border-[#dedbd2] bg-white text-slate-700"
+                  }`}
+                  key={group.id}
+                  onClick={() => setActiveGroupId(group.id)}
+                  type="button"
+                >
+                  {group.name}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <form className="mt-5 grid gap-4 rounded-app border border-[#dedbd2] bg-white p-4" onSubmit={handleDiscussion}>
             <h3 className="font-black text-ink">Start a discussion</h3>
@@ -285,22 +344,98 @@ export default function GroupsPage() {
           <h2 className="text-xl font-black text-ink">Discussion posts</h2>
           <div className="mt-4 grid gap-3">
             {activePosts.length ? (
-              activePosts.map((post) => (
-                <article className="rounded-app border border-[#dedbd2] bg-white p-4" key={post.id}>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-black text-ink">{post.authorName}</h3>
-                    <span className="rounded-app bg-skysoft px-2 py-1 text-xs font-bold text-moss">
-                      {formatSpoilerLabel(post.spoilerLevel)}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm text-slate-700">{post.body}</p>
-                  {post.relatedBookTitle ? (
-                    <p className="mt-2 text-sm font-bold text-slate-600">
-                      Attached to {post.relatedBookTitle}
-                    </p>
-                  ) : null}
-                </article>
-              ))
+              activePosts.map((post) => {
+                const comments =
+                  state?.discussionComments.filter((comment) => comment.postId === post.id) ?? [];
+                const isProtected = post.spoilerLevel !== "none";
+                const isRevealed = revealedPostIds.has(post.id);
+
+                return (
+                  <article className="rounded-app border border-[#dedbd2] bg-white p-4" key={post.id}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-black text-ink">{post.authorName}</h3>
+                      <span className="rounded-app bg-skysoft px-2 py-1 text-xs font-bold text-moss">
+                        {formatSpoilerLabel(post.spoilerLevel)}
+                      </span>
+                      {comments.length ? (
+                        <span className="rounded-app bg-[#f7f3ea] px-2 py-1 text-xs font-bold text-slate-700">
+                          {comments.length} {comments.length === 1 ? "reply" : "replies"}
+                        </span>
+                      ) : null}
+                    </div>
+                    {isProtected && !isRevealed ? (
+                      <div className="mt-3 rounded-app border border-[#d8b28d] bg-[#fff7ed] p-4">
+                        <p className="text-sm font-bold text-[#7c4a20]">
+                          This discussion may contain spoilers.
+                        </p>
+                        <p className="mt-1 text-sm text-slate-700">
+                          Reveal only if you are ready for this part of the book.
+                        </p>
+                        <button
+                          className="secondary-button mt-3"
+                          onClick={() => toggleReveal(post.id)}
+                          type="button"
+                        >
+                          Reveal discussion
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="mt-2 text-sm text-slate-700">{post.body}</p>
+                        {isProtected ? (
+                          <button
+                            className="mt-3 text-sm font-bold text-[#315c48]"
+                            onClick={() => toggleReveal(post.id)}
+                            type="button"
+                          >
+                            Hide spoiler again
+                          </button>
+                        ) : null}
+                      </>
+                    )}
+                    {post.relatedBookTitle ? (
+                      <p className="mt-2 text-sm font-bold text-slate-600">
+                        Attached to {post.relatedBookTitle}
+                      </p>
+                    ) : null}
+                    <div className="mt-4 grid gap-2 border-t border-[#dedbd2] pt-4">
+                      {comments.length ? (
+                        comments.map((comment) => (
+                          <div className="rounded-app bg-[#f7f3ea] p-3" key={comment.id}>
+                            <p className="text-xs font-black uppercase text-[#315c48]">
+                              {comment.authorName}
+                            </p>
+                            <p className="mt-1 text-sm text-slate-700">{comment.body}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-600">
+                          No replies yet. Add a quick thought or encouragement.
+                        </p>
+                      )}
+                      <form className="mt-2 grid gap-2" onSubmit={(event) => handleReply(event, post.id)}>
+                        <label className="grid gap-2 text-sm font-bold text-slate-700">
+                          Reply
+                          <textarea
+                            className="min-h-20 rounded-app border border-[#dedbd2] px-3 py-2"
+                            onChange={(event) =>
+                              setReplyDrafts((current) => ({
+                                ...current,
+                                [post.id]: event.target.value
+                              }))
+                            }
+                            placeholder="Add a thoughtful reply"
+                            value={replyDrafts[post.id] ?? ""}
+                          />
+                        </label>
+                        <button className="secondary-button justify-self-start" type="submit">
+                          Add reply
+                        </button>
+                      </form>
+                    </div>
+                  </article>
+                );
+              })
             ) : (
               <p className="rounded-app border border-[#dedbd2] bg-white p-4 text-slate-700">
                 No discussions yet.

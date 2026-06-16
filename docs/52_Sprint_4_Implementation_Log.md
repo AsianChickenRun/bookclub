@@ -15,6 +15,11 @@ Move the Vercel deployment closer to a working product experience by removing in
 - Replaced user-facing `Sprint`, `mock`, and engineering placeholder copy with product-facing preview language.
 - Clarified that the deployed preview stores data in the current browser until cloud accounts are connected.
 - Cleaned sign-in, onboarding, settings, books, today, groups, and reviews copy.
+- Added active group selection to the Groups page.
+- Added local discussion replies with replies scoped to their discussion post.
+- Added basic spoiler reveal controls for spoiler-marked discussion posts.
+- Added local comment data shape for discussion replies.
+- Added a calmer Reading Momentum visual theme with warmer paper surfaces, sage/clay accents, clearer focus states, and more polished navigation/header/empty-state components.
 - Kept Supabase/cloud persistence out of scope for this slice.
 
 ## Verification
@@ -42,6 +47,6 @@ Move the Vercel deployment closer to a working product experience by removing in
 
 Make the deployed preview functionally stronger by adding one of:
 
-1. Group discussion replies and spoiler reveal controls.
-2. Repository abstraction cleanup so app pages can switch from local storage to Supabase with less rewrite.
-3. Supabase-backed auth/profile/group persistence if credentials and migration approval are available.
+1. Repository abstraction cleanup so app pages can switch from local storage to Supabase with less rewrite.
+2. Supabase-backed auth/profile/group persistence if credentials and migration approval are available.
+3. Basic streak or momentum summary using the existing local check-in history.

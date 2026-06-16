@@ -3,14 +3,20 @@
 @tailwind utilities;
 
 :root {
-  --background: #fbfaf7;
-  --foreground: #1f2933;
-  --muted: #6b7280;
-  --line: #dedbd2;
-  --surface: #ffffff;
+  --background: #fbf8f1;
+  --foreground: #24312c;
+  --muted: #69736d;
+  --line: #ddd5c7;
+  --line-strong: #c9bea9;
+  --surface: #fffdf8;
+  --surface-warm: #f4eadc;
   --accent: #315c48;
-  --accent-soft: #dcebf3;
-  --warm: #b7795b;
+  --accent-strong: #244737;
+  --accent-soft: #dfece4;
+  --companion: #5d7f96;
+  --warm: #b46b4c;
+  --warm-soft: #f2dfd1;
+  --focus: #87623f;
 }
 
 * {
@@ -19,11 +25,15 @@
 
 body {
   margin: 0;
-  background: var(--background);
+  background:
+    radial-gradient(circle at 12% -10%, rgba(223, 236, 228, 0.9), transparent 32rem),
+    radial-gradient(circle at 98% 6%, rgba(242, 223, 209, 0.82), transparent 26rem),
+    var(--background);
   color: var(--foreground);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
 a {
@@ -38,23 +48,58 @@ textarea {
   font: inherit;
 }
 
+button,
+input,
+select,
+textarea {
+  color: var(--foreground);
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(135, 98, 63, 0.28);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(180, 107, 76, 0.28);
+}
+
 .page-shell {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(220, 235, 243, 0.55), rgba(251, 250, 247, 0) 320px),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.76), rgba(251, 248, 241, 0) 22rem),
+    linear-gradient(135deg, rgba(223, 236, 228, 0.68), rgba(242, 223, 209, 0.34) 48%, rgba(93, 127, 150, 0.16)),
     var(--background);
 }
 
 .content-wrap {
-  width: min(1120px, calc(100% - 32px));
+  width: min(1120px, calc(100% - 28px));
   margin: 0 auto;
 }
 
 .soft-card {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 18px 50px rgba(31, 41, 51, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(255, 253, 248, 0.88)),
+    var(--surface);
+  box-shadow: 0 18px 44px rgba(71, 58, 42, 0.1);
+  backdrop-filter: blur(14px);
 }
 
 .primary-button {
@@ -63,11 +108,16 @@ textarea {
   justify-content: center;
   min-height: 44px;
   border-radius: 8px;
-  border: 1px solid var(--accent);
-  background: var(--accent);
+  border: 1px solid var(--accent-strong);
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
   color: white;
   padding: 0 18px;
   font-weight: 700;
+  box-shadow: 0 10px 22px rgba(49, 92, 72, 0.18);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
 .secondary-button {
@@ -76,17 +126,43 @@ textarea {
   justify-content: center;
   min-height: 44px;
   border-radius: 8px;
-  border: 1px solid var(--line);
-  background: white;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 253, 248, 0.94);
   color: var(--foreground);
   padding: 0 18px;
   font-weight: 700;
+  box-shadow: 0 8px 20px rgba(71, 58, 42, 0.06);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.primary-button:hover,
+.secondary-button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-button:active,
+.secondary-button:active {
+  transform: translateY(0);
+}
+
+.secondary-button:hover {
+  border-color: var(--accent);
+  background: var(--surface);
 }
 
 .eyebrow {
-  color: var(--accent);
+  color: var(--warm);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
   text-transform: uppercase;
+}
+
+@media (min-width: 640px) {
+  .content-wrap {
+    width: min(1120px, calc(100% - 48px));
+  }
 }

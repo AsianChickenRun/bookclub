@@ -90,6 +90,14 @@ export type MockDiscussionPost = {
   createdAt: string;
 };
 
+export type MockDiscussionComment = {
+  id: string;
+  postId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+};
+
 export type MockAppState = {
   user: MockUser | null;
   profile: MockProfile | null;
@@ -98,6 +106,7 @@ export type MockAppState = {
   readingLogs: MockReadingLog[];
   activities: MockActivity[];
   discussionPosts: MockDiscussionPost[];
+  discussionComments: MockDiscussionComment[];
 };
 
 const STORAGE_KEY = "reading-momentum:sprint1";
@@ -109,7 +118,8 @@ const emptyState: MockAppState = {
   books: [],
   readingLogs: [],
   activities: [],
-  discussionPosts: []
+  discussionPosts: [],
+  discussionComments: []
 };
 
 export function readMockState(): MockAppState {
@@ -353,6 +363,25 @@ export function addMockDiscussionPost(input: {
     ...current,
     discussionPosts: [post, ...current.discussionPosts],
     activities: [activity, ...current.activities]
+  };
+  writeMockState(nextState);
+  return nextState;
+}
+
+export function addMockDiscussionComment(input: { postId: string; body: string }) {
+  const current = readMockState();
+  const now = new Date().toISOString();
+  const comment: MockDiscussionComment = {
+    id: crypto.randomUUID(),
+    postId: input.postId,
+    authorName: current.profile?.displayName ?? "Reader",
+    body: input.body,
+    createdAt: now
+  };
+
+  const nextState = {
+    ...current,
+    discussionComments: [comment, ...current.discussionComments]
   };
   writeMockState(nextState);
   return nextState;
