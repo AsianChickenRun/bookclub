@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { readMockState, saveMockProfile } from "@/lib/mock-app-state";
+import { getRepository } from "@/lib/persistence/repository";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -12,13 +12,14 @@ export default function OnboardingPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const state = readMockState();
-    setDisplayName(state.profile?.displayName ?? "");
-    setFavoriteGenres(state.profile?.favoriteGenres ?? "");
-    setTimezone(state.profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
+    getRepository().getState().then((state) => {
+      setDisplayName(state.profile?.displayName ?? "");
+      setFavoriteGenres(state.profile?.favoriteGenres ?? "");
+      setTimezone(state.profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
+    });
   }, []);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!displayName.trim()) {
@@ -26,7 +27,7 @@ export default function OnboardingPage() {
       return;
     }
 
-    saveMockProfile({
+    await getRepository().saveProfile({
       displayName: displayName.trim(),
       favoriteGenres: favoriteGenres.trim(),
       timezone

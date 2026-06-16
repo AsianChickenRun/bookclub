@@ -3,14 +3,10 @@
 import { FormEvent, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import {
-  addMockDiscussionComment,
-  addMockDiscussionPost,
-  createMockGroup,
-  joinMockGroup,
-  MockAppState,
-  readMockState,
-  SpoilerLevel
-} from "@/lib/mock-app-state";
+  getRepository,
+  type MockAppState,
+  type SpoilerLevel
+} from "@/lib/persistence/repository";
 
 const spoilerLevels: { value: SpoilerLevel; label: string }[] = [
   { value: "none", label: "No spoilers" },
@@ -36,9 +32,10 @@ export default function GroupsPage() {
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const nextState = readMockState();
-    setState(nextState);
-    setActiveGroupId(nextState.groups[0]?.id ?? "");
+    getRepository().getState().then((nextState) => {
+      setState(nextState);
+      setActiveGroupId(nextState.groups[0]?.id ?? "");
+    });
   }, []);
 
   const activeGroup =
@@ -50,23 +47,26 @@ export default function GroupsPage() {
     ? state.discussionPosts.filter((post) => post.groupId === activeGroup.id).slice(0, 4)
     : [];
 
-  function handleCreate(event: FormEvent<HTMLFormElement>) {
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const nextState = createMockGroup(name.trim() || "Untitled group", description.trim());
+    const nextState = await getRepository().createGroup(
+      name.trim() || "Untitled group",
+      description.trim()
+    );
     setState(nextState);
     setActiveGroupId(nextState.groups[0]?.id ?? "");
     setMessage("Group created.");
   }
 
-  function handleJoin(event: FormEvent<HTMLFormElement>) {
+  async function handleJoin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const nextState = joinMockGroup(inviteCode);
+    const nextState = await getRepository().joinGroup(inviteCode);
     setState(nextState);
     setActiveGroupId(nextState.groups[0]?.id ?? "");
     setMessage("Group joined.");
   }
 
-  function handleDiscussion(event: FormEvent<HTMLFormElement>) {
+  async function handleDiscussion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!activeGroup) {
@@ -79,7 +79,7 @@ export default function GroupsPage() {
       return;
     }
 
-    const nextState = addMockDiscussionPost({
+    const nextState = await getRepository().addDiscussionPost({
       groupId: activeGroup.id,
       body: discussionBody.trim(),
       relatedBookId: relatedBookId || null,
@@ -97,7 +97,7 @@ export default function GroupsPage() {
     setMessage("Discussion posted to the group feed.");
   }
 
-  function handleReply(event: FormEvent<HTMLFormElement>, postId: string) {
+  async function handleReply(event: FormEvent<HTMLFormElement>, postId: string) {
     event.preventDefault();
     const body = replyDrafts[postId]?.trim();
 
@@ -106,7 +106,7 @@ export default function GroupsPage() {
       return;
     }
 
-    const nextState = addMockDiscussionComment({ postId, body });
+    const nextState = await getRepository().addDiscussionComment({ postId, body });
     setState(nextState);
     setReplyDrafts((current) => ({ ...current, [postId]: "" }));
     setMessage("Reply added.");

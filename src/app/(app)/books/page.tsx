@@ -3,12 +3,11 @@
 import { FormEvent, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import {
-  addMockBook,
-  MockAppState,
-  ReadingFormat,
-  ReadingGoalType,
-  readMockState
-} from "@/lib/mock-app-state";
+  getRepository,
+  type MockAppState,
+  type ReadingFormat,
+  type ReadingGoalType
+} from "@/lib/persistence/repository";
 
 const formats: ReadingFormat[] = ["print", "ebook", "audiobook", "mixed"];
 const goalTypes: ReadingGoalType[] = ["pages", "chapters", "minutes", "sessions"];
@@ -26,14 +25,14 @@ export default function BooksPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    setState(readMockState());
+    getRepository().getState().then(setState);
   }, []);
 
   function numericValue(value: string) {
     return value.trim() ? Number(value) : null;
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!title.trim()) {
@@ -70,7 +69,7 @@ export default function BooksPage() {
     }
 
     setState(
-      addMockBook({
+      await getRepository().addBook({
         title: title.trim(),
         author: author.trim(),
         format,
@@ -211,7 +210,7 @@ export default function BooksPage() {
                     <div>
                       <h3 className="font-black text-ink">{book.title}</h3>
                       <p className="mt-1 text-sm text-slate-700">
-                        {book.author || "Unknown author"} · {book.format} · {book.goalType}
+                        {book.author || "Unknown author"} - {book.format} - {book.goalType}
                       </p>
                     </div>
                     <span className="rounded-app bg-skysoft px-3 py-1 text-xs font-black text-moss">
@@ -220,7 +219,7 @@ export default function BooksPage() {
                   </div>
                   <p className="mt-3 text-sm text-slate-600">
                     Page {book.currentPage ?? "?"}
-                    {book.totalPages ? ` of ${book.totalPages}` : ""} · Chapter{" "}
+                    {book.totalPages ? ` of ${book.totalPages}` : ""} - Chapter{" "}
                     {book.currentChapter ?? "?"}
                     {book.totalChapters ? ` of ${book.totalChapters}` : ""}
                   </p>

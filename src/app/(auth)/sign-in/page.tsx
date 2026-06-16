@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { readMockState, signInMockUser } from "@/lib/mock-app-state";
+import { getRepository } from "@/lib/persistence/repository";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -10,7 +10,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState("reading");
   const [message, setMessage] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!email.trim() || !password.trim()) {
@@ -18,8 +18,7 @@ export default function SignInPage() {
       return;
     }
 
-    signInMockUser(email.trim());
-    const state = readMockState();
+    const state = await getRepository().signIn(email.trim());
     router.push(state.profile ? "/today" : "/onboarding");
   }
 

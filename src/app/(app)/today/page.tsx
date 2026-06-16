@@ -5,13 +5,11 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { PlaceholderCard } from "@/components/placeholder-card";
 import {
-  addMockReadingLog,
-  CheckInUnit,
-  CheckInVisibility,
-  getMostRecentBook,
-  MockAppState,
-  readMockState
-} from "@/lib/mock-app-state";
+  getRepository,
+  type CheckInUnit,
+  type CheckInVisibility,
+  type MockAppState
+} from "@/lib/persistence/repository";
 
 const units: CheckInUnit[] = ["pages", "chapters", "minutes", "audiobook_minutes", "sessions"];
 
@@ -26,9 +24,10 @@ export default function TodayPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const nextState = readMockState();
-    setState(nextState);
-    setSelectedBookId(getMostRecentBook(nextState)?.id ?? "");
+    getRepository().getState().then((nextState) => {
+      setState(nextState);
+      setSelectedBookId(getRepository().getMostRecentBook(nextState)?.id ?? "");
+    });
   }, []);
 
   const displayName = state?.profile?.displayName ?? "Reader";
@@ -37,13 +36,13 @@ export default function TodayPage() {
       return undefined;
     }
 
-    return state.books.find((book) => book.id === selectedBookId) ?? getMostRecentBook(state);
+    return state.books.find((book) => book.id === selectedBookId) ?? getRepository().getMostRecentBook(state);
   }, [selectedBookId, state]);
 
   const groupCount = state?.groups.length ?? 0;
   const recentLogs = state?.readingLogs.slice(0, 5) ?? [];
 
-  function handleCheckIn(event: FormEvent<HTMLFormElement>) {
+  async function handleCheckIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!currentBook) {
@@ -82,7 +81,7 @@ export default function TodayPage() {
       return;
     }
 
-    const nextState = addMockReadingLog({
+    const nextState = await getRepository().addReadingLog({
       userBookId: currentBook.id,
       unit,
       amount: skipped ? 0 : numericAmount,

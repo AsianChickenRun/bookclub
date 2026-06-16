@@ -3,11 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
-import {
-  clearMockState,
-  readMockState,
-  saveMockProfile
-} from "@/lib/mock-app-state";
+import { getRepository } from "@/lib/persistence/repository";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -17,13 +13,14 @@ export default function SettingsPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const state = readMockState();
-    setDisplayName(state.profile?.displayName ?? "");
-    setFavoriteGenres(state.profile?.favoriteGenres ?? "");
-    setTimezone(state.profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
+    getRepository().getState().then((state) => {
+      setDisplayName(state.profile?.displayName ?? "");
+      setFavoriteGenres(state.profile?.favoriteGenres ?? "");
+      setTimezone(state.profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
+    });
   }, []);
 
-  function handleSave(event: FormEvent<HTMLFormElement>) {
+  async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!displayName.trim()) {
@@ -31,7 +28,7 @@ export default function SettingsPage() {
       return;
     }
 
-    saveMockProfile({
+    await getRepository().saveProfile({
       displayName: displayName.trim(),
       favoriteGenres: favoriteGenres.trim(),
       timezone
@@ -39,8 +36,8 @@ export default function SettingsPage() {
     setMessage("Profile saved in this browser.");
   }
 
-  function handleSignOut() {
-    clearMockState();
+  async function handleSignOut() {
+    await getRepository().clearSession();
     router.push("/sign-in");
   }
 
