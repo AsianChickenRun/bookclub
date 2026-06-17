@@ -49,6 +49,7 @@ Out of scope:
 - Added discussion creation directly inside a specific group room.
 - Added a lightweight local room roster derived from local profile and room activity.
 - Added a session prompt card to make the group page feel more like an active reading session.
+- Added Google Books catalog search inside the room discussion composer so users can find, save, and attach a book without leaving the room.
 
 ## Acceptance Criteria
 
@@ -56,6 +57,7 @@ Out of scope:
 - Missing group state has a clear fallback.
 - Group room shows session context, stats, discussions, replies, and activity.
 - Group room allows starting a new discussion without leaving the specific group page.
+- Group room allows searching for a book and attaching it to a room discussion without leaving the page.
 - Spoiler-marked discussions are protected until revealed.
 - Build, lint, and typecheck pass.
 - Vercel deployment remains reachable after sync.
@@ -66,8 +68,8 @@ After this page lands, the next useful group improvements are:
 
 1. Add editable or scheduled weekly room rituals.
 2. Add member-specific reading progress once real membership exists.
-3. Add direct book search entry points from room discussion creation.
-4. Move group room data to Supabase when Sprint 5 access gates are met.
+3. Move group room data to Supabase when Sprint 5 access gates are met.
+4. Add direct group invite/member management after persistence is active.
 
 ## Group Room Depth Update
 
@@ -79,6 +81,7 @@ Completed:
 
 - Users can start a discussion from inside `/groups/[groupId]`.
 - New room discussions can attach to the current room book or a selected saved book.
+- New room discussions can search Google Books, save the selected catalog result locally, and attach it to the discussion.
 - New room discussions support no-spoiler, progress-locked, and explicit spoiler labels.
 - Optional spoiler page and chapter inputs are available at creation time.
 - The empty thread state now points users to the in-room discussion composer.

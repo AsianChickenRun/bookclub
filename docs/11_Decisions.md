@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-06-17: Add Book Catalog Search Inside Group Rooms
+
+Decision: Sprint 6 group rooms may include direct Google Books search inside the room discussion composer, saving selected catalog results into local Reading Momentum books before attaching them to the discussion.
+
+Reason: A specific group page should be a working room, not a hub that sends the user elsewhere for core setup. Letting users find and attach a book in context makes room discussions deeper and reduces friction when the group is talking about a book not yet in the local list.
+
+Alternatives considered:
+
+- Require users to go to `/books` before creating a room discussion
+- Allow only free-text book titles in room posts
+- Defer all book context until Supabase persistence is active
+
+Research support: Existing Sprint 6 catalog mini-sprint already approved Google Books as an external public catalog while Reading Momentum remains the source of truth for saved books and user activity.
+
+Future review date: Before production launch, after the Google Books key is restricted and configured in Vercel.
+
 ## 2026-06-17: Make Specific Group Rooms Actionable
 
 Decision: Sprint 6 group rooms should support starting discussions directly inside `/groups/[groupId]`, with local roster and session-prompt depth, before real-time membership or Supabase persistence is introduced.

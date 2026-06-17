@@ -451,6 +451,7 @@ Acceptance criteria:
 
 - User can create discussion posts.
 - User can create discussion posts from a specific group room.
+- User can search for a book from the group room and attach the selected result to the discussion.
 - Users can reply to posts.
 - Replies support short encouragement.
 - Thread structure supports later spoiler controls.

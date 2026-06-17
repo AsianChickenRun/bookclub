@@ -16,6 +16,28 @@ const spoilerLevels: { value: SpoilerLevel; label: string }[] = [
   { value: "explicit", label: "Explicit spoiler" }
 ];
 
+const bookSearchModes = [
+  { value: "all", label: "All fields" },
+  { value: "title", label: "Title" },
+  { value: "author", label: "Author" },
+  { value: "isbn", label: "ISBN" },
+  { value: "subject", label: "Subject" }
+];
+
+type BookSearchResult = {
+  id: string;
+  title: string;
+  author: string;
+  publisher: string | null;
+  publishedDate: string | null;
+  description: string;
+  pageCount: number | null;
+  categories: string[];
+  thumbnail: string | null;
+  isbn10: string | null;
+  isbn13: string | null;
+};
+
 function formatSpoilerLabel(level: SpoilerLevel) {
   if (level === "progress_locked") return "Progress locked";
   if (level === "explicit") return "Explicit spoiler";
@@ -50,6 +72,11 @@ export default function GroupRoomPage() {
   const [spoilerLevel, setSpoilerLevel] = useState<SpoilerLevel>("none");
   const [spoilerPage, setSpoilerPage] = useState("");
   const [spoilerChapter, setSpoilerChapter] = useState("");
+  const [bookSearchQuery, setBookSearchQuery] = useState("");
+  const [bookSearchMode, setBookSearchMode] = useState("all");
+  const [bookSearchResults, setBookSearchResults] = useState<BookSearchResult[]>([]);
+  const [bookSearchMessage, setBookSearchMessage] = useState("");
+  const [isBookSearching, setIsBookSearching] = useState(false);
 
   useEffect(() => {
     getRepository().getState().then(setState);
@@ -91,6 +118,79 @@ export default function GroupRoomPage() {
     state?.discussionComments.filter((comment) =>
       posts.some((post) => post.id === comment.postId)
     ).length ?? 0;
+  const selectedDiscussionBook =
+    state?.books.find((book) => book.id === relatedBookId) ?? currentBook;
+
+  async function handleBookSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (bookSearchQuery.trim().length < 2) {
+      setBookSearchMessage("Search needs at least two characters.");
+      return;
+    }
+
+    setIsBookSearching(true);
+    setBookSearchMessage("Searching the book catalog.");
+
+    try {
+      const params = new URLSearchParams({
+        q: bookSearchQuery.trim(),
+        mode: bookSearchMode,
+        maxResults: "6"
+      });
+      const response = await fetch(`/api/books/search?${params.toString()}`);
+      const payload = (await response.json()) as {
+        items?: BookSearchResult[];
+        error?: string;
+      };
+
+      if (!response.ok) {
+        setBookSearchResults([]);
+        setBookSearchMessage(payload.error ?? "Book search is temporarily unavailable.");
+        return;
+      }
+
+      setBookSearchResults(payload.items ?? []);
+      setBookSearchMessage(
+        payload.items?.length
+          ? "Attach a result to this room discussion."
+          : "No matching books found. Try title, author, or ISBN."
+      );
+    } catch {
+      setBookSearchResults([]);
+      setBookSearchMessage("Book search is temporarily unavailable.");
+    } finally {
+      setIsBookSearching(false);
+    }
+  }
+
+  async function attachCatalogBook(book: BookSearchResult) {
+    const nextState = await getRepository().addBook({
+      title: book.title,
+      author: book.author,
+      externalSource: "google_books",
+      externalId: book.id,
+      publisher: book.publisher,
+      publishedDate: book.publishedDate,
+      description: book.description,
+      categories: book.categories,
+      coverImageUrl: book.thumbnail,
+      isbn10: book.isbn10,
+      isbn13: book.isbn13,
+      format: "print",
+      goalType: book.pageCount ? "pages" : "sessions",
+      totalPages: book.pageCount,
+      totalChapters: null,
+      currentPage: 0,
+      currentChapter: null
+    });
+    const addedBook = nextState.books.find((item) => item.externalId === book.id) ?? nextState.books[0];
+
+    setState(nextState);
+    setRelatedBookId(addedBook.id);
+    setBookSearchResults([]);
+    setBookSearchMessage(`${book.title} is attached to this discussion.`);
+  }
 
   async function handleDiscussion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -307,7 +407,7 @@ export default function GroupRoomPage() {
             </label>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="grid gap-2 text-sm font-bold text-slate-700">
-                Related book
+                Saved book
                 <select
                   className="min-h-11 rounded-app border border-[#dedbd2] px-3"
                   onChange={(event) => setRelatedBookId(event.target.value)}
@@ -335,6 +435,110 @@ export default function GroupRoomPage() {
                   ))}
                 </select>
               </label>
+            </div>
+            {selectedDiscussionBook ? (
+              <div className="note-card grid gap-3 p-3 sm:grid-cols-[3.5rem_1fr]">
+                <div
+                  aria-label={selectedDiscussionBook.title}
+                  className="min-h-16 rounded-app border border-[#ded5c6] bg-[#f2e7d8] bg-cover bg-center"
+                  role="img"
+                  style={
+                    selectedDiscussionBook.coverImageUrl
+                      ? { backgroundImage: `url(${selectedDiscussionBook.coverImageUrl})` }
+                      : undefined
+                  }
+                />
+                <div>
+                  <p className="text-sm font-black text-ink">{selectedDiscussionBook.title}</p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {selectedDiscussionBook.author || "Unknown author"}
+                    {selectedDiscussionBook.publishedDate ? ` - ${selectedDiscussionBook.publishedDate}` : ""}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {selectedDiscussionBook.categories.slice(0, 2).map((category) => (
+                      <span className="warm-pill" key={category}>
+                        {category}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            <div className="note-card grid gap-4 p-4">
+              <div>
+                <h4 className="font-black text-ink">Find a book for this room</h4>
+                <p className="mt-1 text-sm leading-6 text-slate-700">
+                  Search the catalog without leaving the group page, then attach the result to this discussion.
+                </p>
+              </div>
+              <form className="grid gap-3" onSubmit={handleBookSearch}>
+                <label className="grid gap-2 text-sm font-bold text-slate-700">
+                  Book search
+                  <input
+                    className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                    onChange={(event) => setBookSearchQuery(event.target.value)}
+                    placeholder="Title, author, subject, or ISBN"
+                    value={bookSearchQuery}
+                  />
+                </label>
+                <div className="grid gap-3 sm:grid-cols-[0.7fr_0.3fr]">
+                  <label className="grid gap-2 text-sm font-bold text-slate-700">
+                    Search depth
+                    <select
+                      className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                      onChange={(event) => setBookSearchMode(event.target.value)}
+                      value={bookSearchMode}
+                    >
+                      {bookSearchModes.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button className="secondary-button self-end" disabled={isBookSearching} type="submit">
+                    {isBookSearching ? "Searching" : "Search"}
+                  </button>
+                </div>
+              </form>
+              {bookSearchMessage ? (
+                <p className="text-sm text-slate-700">{bookSearchMessage}</p>
+              ) : null}
+              {bookSearchResults.length ? (
+                <div className="grid gap-3">
+                  {bookSearchResults.map((book) => (
+                    <article className="room-card grid gap-3 p-3 sm:grid-cols-[3.5rem_1fr]" key={book.id}>
+                      <div
+                        aria-label={book.title}
+                        className="min-h-16 rounded-app border border-[#ded5c6] bg-[#f2e7d8] bg-cover bg-center"
+                        role="img"
+                        style={book.thumbnail ? { backgroundImage: `url(${book.thumbnail})` } : undefined}
+                      />
+                      <div>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <h5 className="font-black text-ink">{book.title}</h5>
+                            <p className="mt-1 text-sm text-slate-700">
+                              {book.author || "Unknown author"}
+                              {book.publishedDate ? ` - ${book.publishedDate}` : ""}
+                            </p>
+                          </div>
+                          {book.pageCount ? (
+                            <span className="status-pill">{book.pageCount} pages</span>
+                          ) : null}
+                        </div>
+                        <button
+                          className="secondary-button mt-3"
+                          onClick={() => attachCatalogBook(book)}
+                          type="button"
+                        >
+                          Attach to discussion
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-bold text-slate-700">
