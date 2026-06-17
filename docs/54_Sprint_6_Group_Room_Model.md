@@ -134,6 +134,32 @@ UI adjustments:
 - Browser smoke should also cover adding a quiet check-in from one room and confirming it does not increment another room's reading-note count.
 - Browser smoke should also cover book metadata edge cases: missing cover, missing ISBN, manual books, duplicate/enriched records, mobile layout, stale attachments, and Google Books results with sparse metadata.
 
+## Smoke Test Evidence
+
+Date: 2026-06-17  
+Environment: local production server on `localhost:3001` using headless Chrome.
+
+Passed:
+
+- Books page loaded.
+- Manual book was added to local reading list.
+- Groups page loaded.
+- Private group was created.
+- Specific group room opened through `/groups/[groupId]`.
+- Session focus showed the current manual book and page metadata.
+- Weekly ritual prompt filled the discussion composer.
+- Room discussion was created.
+- Thread displayed attached-book context.
+- Reply was added to the room thread.
+- Room-scoped check-in was added.
+- Group room state persisted after refresh in the same browser.
+- Mobile viewport rendered the group room without horizontal overflow at 390px width.
+
+Unverified in this pass:
+
+- Live hosted Google Books search, because production still needs `GOOGLE_BOOKS_API_KEY` configured in Vercel.
+- Real cross-device group membership, because Sprint 6 remains same-browser local until Supabase persistence is approved.
+
 Future hardening:
 
 - Normalize imported/stale discussion posts, discussion comments, and activity records before Supabase activation.
