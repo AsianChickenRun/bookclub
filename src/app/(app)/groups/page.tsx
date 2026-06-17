@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import {
   getRepository,
@@ -331,6 +332,9 @@ export default function GroupsPage() {
                     </span>
                   </div>
                   <p className="mt-3 text-sm text-slate-600">Invite: {group.inviteCode}</p>
+                  <Link className="secondary-button mt-4 w-full" href={`/groups/${group.id}`}>
+                    Open group room
+                  </Link>
                 </article>
               ))
             ) : (
