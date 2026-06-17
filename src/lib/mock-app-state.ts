@@ -36,8 +36,17 @@ export type SpoilerLevel = "none" | "progress_locked" | "explicit";
 export type MockUserBook = {
   id: string;
   bookId: string;
+  externalSource: "manual" | "google_books";
+  externalId: string | null;
   title: string;
   author: string;
+  publisher: string | null;
+  publishedDate: string | null;
+  description: string;
+  categories: string[];
+  coverImageUrl: string | null;
+  isbn10: string | null;
+  isbn13: string | null;
   format: ReadingFormat;
   goalType: ReadingGoalType;
   totalPages: number | null;
@@ -122,6 +131,45 @@ const emptyState: MockAppState = {
   discussionComments: []
 };
 
+function normalizeBook(book: Partial<MockUserBook>): MockUserBook {
+  const now = new Date().toISOString();
+
+  return {
+    id: book.id ?? crypto.randomUUID(),
+    bookId: book.bookId ?? book.externalId ?? crypto.randomUUID(),
+    externalSource: book.externalSource ?? "manual",
+    externalId: book.externalId ?? null,
+    title: book.title ?? "Untitled book",
+    author: book.author ?? "",
+    publisher: book.publisher ?? null,
+    publishedDate: book.publishedDate ?? null,
+    description: book.description ?? "",
+    categories: book.categories ?? [],
+    coverImageUrl: book.coverImageUrl ?? null,
+    isbn10: book.isbn10 ?? null,
+    isbn13: book.isbn13 ?? null,
+    format: book.format ?? "print",
+    goalType: book.goalType ?? "pages",
+    totalPages: book.totalPages ?? null,
+    totalChapters: book.totalChapters ?? null,
+    currentPage: book.currentPage ?? null,
+    currentChapter: book.currentChapter ?? null,
+    minutesReadTotal: book.minutesReadTotal ?? 0,
+    sessionsTotal: book.sessionsTotal ?? 0,
+    status: book.status ?? "current",
+    startedAt: book.startedAt ?? now.slice(0, 10),
+    updatedAt: book.updatedAt ?? now
+  };
+}
+
+export function normalizeMockState(state: Partial<MockAppState>): MockAppState {
+  return {
+    ...emptyState,
+    ...state,
+    books: (state.books ?? []).map(normalizeBook)
+  };
+}
+
 export function readMockState(): MockAppState {
   if (typeof window === "undefined") {
     return emptyState;
@@ -134,7 +182,7 @@ export function readMockState(): MockAppState {
   }
 
   try {
-    return { ...emptyState, ...JSON.parse(raw) } as MockAppState;
+    return normalizeMockState(JSON.parse(raw) as Partial<MockAppState>);
   } catch {
     return emptyState;
   }
@@ -199,6 +247,15 @@ export function joinMockGroup(inviteCode: string) {
 export function addMockBook(input: {
   title: string;
   author: string;
+  externalSource?: "manual" | "google_books";
+  externalId?: string | null;
+  publisher?: string | null;
+  publishedDate?: string | null;
+  description?: string;
+  categories?: string[];
+  coverImageUrl?: string | null;
+  isbn10?: string | null;
+  isbn13?: string | null;
   format: ReadingFormat;
   goalType: ReadingGoalType;
   totalPages?: number | null;
@@ -212,9 +269,18 @@ export function addMockBook(input: {
   const now = new Date().toISOString();
   const book: MockUserBook = {
     id: crypto.randomUUID(),
-    bookId: crypto.randomUUID(),
+    bookId: input.externalId ?? crypto.randomUUID(),
+    externalSource: input.externalSource ?? "manual",
+    externalId: input.externalId ?? null,
     title: input.title,
     author: input.author,
+    publisher: input.publisher ?? null,
+    publishedDate: input.publishedDate ?? null,
+    description: input.description ?? "",
+    categories: input.categories ?? [],
+    coverImageUrl: input.coverImageUrl ?? null,
+    isbn10: input.isbn10 ?? null,
+    isbn13: input.isbn13 ?? null,
     format: input.format,
     goalType: input.goalType,
     totalPages: input.totalPages ?? null,

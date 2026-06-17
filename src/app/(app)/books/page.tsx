@@ -11,9 +11,39 @@ import {
 
 const formats: ReadingFormat[] = ["print", "ebook", "audiobook", "mixed"];
 const goalTypes: ReadingGoalType[] = ["pages", "chapters", "minutes", "sessions"];
+const searchModes = [
+  { value: "all", label: "All fields" },
+  { value: "title", label: "Title" },
+  { value: "author", label: "Author" },
+  { value: "isbn", label: "ISBN" },
+  { value: "subject", label: "Subject" }
+];
+
+type BookSearchResult = {
+  id: string;
+  title: string;
+  author: string;
+  publisher: string | null;
+  publishedDate: string | null;
+  description: string;
+  pageCount: number | null;
+  categories: string[];
+  averageRating: number | null;
+  ratingsCount: number | null;
+  thumbnail: string | null;
+  isbn10: string | null;
+  isbn13: string | null;
+  previewLink: string | null;
+  infoLink: string | null;
+};
 
 export default function BooksPage() {
   const [state, setState] = useState<MockAppState | null>(null);
+  const [searchQuery, setSearchQuery] = useState("Tomorrow, and Tomorrow, and Tomorrow");
+  const [searchMode, setSearchMode] = useState("all");
+  const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
+  const [searchMessage, setSearchMessage] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [format, setFormat] = useState<ReadingFormat>("print");
@@ -30,6 +60,74 @@ export default function BooksPage() {
 
   function numericValue(value: string) {
     return value.trim() ? Number(value) : null;
+  }
+
+  async function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (searchQuery.trim().length < 2) {
+      setSearchMessage("Search needs at least two characters.");
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchMessage("Searching the book catalog.");
+
+    try {
+      const params = new URLSearchParams({
+        q: searchQuery.trim(),
+        mode: searchMode,
+        maxResults: "12"
+      });
+      const response = await fetch(`/api/books/search?${params.toString()}`);
+      const payload = (await response.json()) as {
+        items?: BookSearchResult[];
+        error?: string;
+      };
+
+      if (!response.ok) {
+        setSearchResults([]);
+        setSearchMessage(payload.error ?? "Book search is temporarily unavailable.");
+        return;
+      }
+
+      setSearchResults(payload.items ?? []);
+      setSearchMessage(
+        payload.items?.length
+          ? "Choose a result to add it to your current reading list."
+          : "No matching books found. Try title, author, or ISBN."
+      );
+    } catch {
+      setSearchResults([]);
+      setSearchMessage("Book search is temporarily unavailable.");
+    } finally {
+      setIsSearching(false);
+    }
+  }
+
+  async function addCatalogBook(book: BookSearchResult) {
+    const nextState = await getRepository().addBook({
+      title: book.title,
+      author: book.author,
+      externalSource: "google_books",
+      externalId: book.id,
+      publisher: book.publisher,
+      publishedDate: book.publishedDate,
+      description: book.description,
+      categories: book.categories,
+      coverImageUrl: book.thumbnail,
+      isbn10: book.isbn10,
+      isbn13: book.isbn13,
+      format,
+      goalType: book.pageCount ? "pages" : goalType,
+      totalPages: book.pageCount,
+      totalChapters: null,
+      currentPage: 0,
+      currentChapter: null
+    });
+
+    setState(nextState);
+    setMessage(`${book.title} added from the book catalog.`);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -72,6 +170,7 @@ export default function BooksPage() {
       await getRepository().addBook({
         title: title.trim(),
         author: author.trim(),
+        externalSource: "manual",
         format,
         goalType,
         totalPages: nextTotalPages,
@@ -93,12 +192,105 @@ export default function BooksPage() {
     <>
       <PageHeader
         eyebrow="Books"
-        title="Add the book you are already reading."
-        description="Track current books by pages, chapters, minutes, or sessions so check-ins stay quick."
+        title="Find and track the book you are already reading."
+        description="Search the public book catalog, save the right edition, then keep local reading progress simple."
       />
-      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+        <section className="soft-card overflow-hidden">
+          <div className="border-b border-[#ded5c6] bg-[#f2e7d8]/60 px-5 py-4">
+            <p className="eyebrow">Book catalog</p>
+            <h2 className="mt-2 text-xl font-black text-ink">Search Google Books</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              Search by title, author, subject, or ISBN. Results become local Reading Momentum books when added.
+            </p>
+          </div>
+          <div className="p-5">
+            <form className="grid gap-4" onSubmit={handleSearch}>
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Search
+                <input
+                  className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Title, author, subject, or ISBN"
+                  value={searchQuery}
+                />
+              </label>
+              <div className="grid gap-4 sm:grid-cols-[0.7fr_0.3fr]">
+                <label className="grid gap-2 text-sm font-bold text-slate-700">
+                  Search depth
+                  <select
+                    className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                    onChange={(event) => setSearchMode(event.target.value)}
+                    value={searchMode}
+                  >
+                    {searchModes.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button className="primary-button self-end" disabled={isSearching} type="submit">
+                  {isSearching ? "Searching" : "Search"}
+                </button>
+              </div>
+            </form>
+
+            {searchMessage ? (
+              <p className="note-card mt-4 p-3 text-sm text-slate-700">{searchMessage}</p>
+            ) : null}
+
+            <div className="mt-5 grid gap-3">
+              {searchResults.map((book) => (
+                <article className="note-card grid gap-4 p-4 sm:grid-cols-[5rem_1fr]" key={book.id}>
+                  <div
+                    aria-label={book.title}
+                    className="min-h-28 rounded-app border border-[#ded5c6] bg-[#f2e7d8] bg-cover bg-center shadow-sm"
+                    role="img"
+                    style={book.thumbnail ? { backgroundImage: `url(${book.thumbnail})` } : undefined}
+                  />
+                  <div>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-black text-ink">{book.title}</h3>
+                        <p className="mt-1 text-sm text-slate-700">
+                          {book.author || "Unknown author"}
+                          {book.publishedDate ? ` - ${book.publishedDate}` : ""}
+                        </p>
+                      </div>
+                      {book.pageCount ? (
+                        <span className="status-pill">{book.pageCount} pages</span>
+                      ) : null}
+                    </div>
+                    {book.description ? (
+                      <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">
+                        {book.description}
+                      </p>
+                    ) : null}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {book.categories.slice(0, 2).map((category) => (
+                        <span className="warm-pill" key={category}>
+                          {category}
+                        </span>
+                      ))}
+                      {book.isbn13 ? <span className="status-pill">ISBN {book.isbn13}</span> : null}
+                    </div>
+                    <button
+                      className="secondary-button mt-4"
+                      onClick={() => addCatalogBook(book)}
+                      type="button"
+                    >
+                      Add to my books
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <form className="soft-card grid gap-4 p-5" onSubmit={handleSubmit}>
-          <h2 className="text-xl font-black text-ink">Current book</h2>
+          <h2 className="text-xl font-black text-ink">Manual book entry</h2>
           <label className="grid gap-2 text-sm font-bold text-slate-700">
             Title
             <input
@@ -200,33 +392,56 @@ export default function BooksPage() {
             Add book
           </button>
         </form>
-        <section className="soft-card p-5">
+        <section className="soft-card p-5 xl:col-span-2">
           <h2 className="text-xl font-black text-ink">Your current books</h2>
-          <div className="mt-4 grid gap-3">
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
             {state?.books.length ? (
               state.books.map((book) => (
-                <article className="rounded-app border border-[#dedbd2] bg-white p-4" key={book.id}>
+                <article className="note-card grid gap-4 p-4 sm:grid-cols-[4.5rem_1fr]" key={book.id}>
+                  <div
+                    aria-label={book.title}
+                    className="min-h-24 rounded-app border border-[#ded5c6] bg-[#f2e7d8] bg-cover bg-center shadow-sm"
+                    role="img"
+                    style={book.coverImageUrl ? { backgroundImage: `url(${book.coverImageUrl})` } : undefined}
+                  />
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h3 className="font-black text-ink">{book.title}</h3>
                       <p className="mt-1 text-sm text-slate-700">
                         {book.author || "Unknown author"} - {book.format} - {book.goalType}
                       </p>
+                      {book.description ? (
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-700">
+                          {book.description}
+                        </p>
+                      ) : null}
                     </div>
-                    <span className="rounded-app bg-skysoft px-3 py-1 text-xs font-black text-moss">
+                    <span className="status-pill">
                       {book.status}
                     </span>
                   </div>
-                  <p className="mt-3 text-sm text-slate-600">
+                  <p className="mt-3 text-sm text-slate-600 sm:col-start-2">
                     Page {book.currentPage ?? "?"}
                     {book.totalPages ? ` of ${book.totalPages}` : ""} - Chapter{" "}
                     {book.currentChapter ?? "?"}
                     {book.totalChapters ? ` of ${book.totalChapters}` : ""}
                   </p>
+                  <div className="flex flex-wrap gap-2 sm:col-start-2">
+                    {book.externalSource === "google_books" ? (
+                      <span className="warm-pill">Google Books</span>
+                    ) : (
+                      <span className="warm-pill">Manual</span>
+                    )}
+                    {book.categories.slice(0, 2).map((category) => (
+                      <span className="status-pill" key={category}>
+                        {category}
+                      </span>
+                    ))}
+                  </div>
                 </article>
               ))
             ) : (
-              <p className="rounded-app border border-[#dedbd2] bg-white p-4 text-slate-700">
+              <p className="note-card p-4 text-slate-700">
                 No current books yet. Add one to unlock the check-in flow on Today.
               </p>
             )}

@@ -351,7 +351,10 @@ As a user, I want to add a current book so I can track what I am reading.
 
 Acceptance criteria:
 
-- User can enter title, author, format, genre, and start date.
+- User can search an external book catalog by title, author, subject, or ISBN.
+- User can add a searched book into their current reading list.
+- Saved searched books preserve useful metadata such as source ID, author, publisher, published date, page count, categories, ISBN, cover image URL, and description when available.
+- User can still enter title, author, format, genre, and start date manually.
 - User can choose a goal type: pages, chapters, minutes, or sessions.
 - User can enter total pages or chapters when relevant.
 - User can optionally add a target finish date.

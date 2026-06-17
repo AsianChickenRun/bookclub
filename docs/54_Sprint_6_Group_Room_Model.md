@@ -45,6 +45,7 @@ Out of scope:
 - Added deeper room thread UI with spoiler reveal/hide behavior.
 - Added room-specific reply forms.
 - Added room activity summary.
+- Added book-catalog mini-sprint support so current books can be searched from Google Books and saved locally with richer metadata for future room context.
 
 ## Acceptance Criteria
 
@@ -63,3 +64,25 @@ After this page lands, the next useful group improvements are:
 2. Add a lightweight local member roster.
 3. Add a group session prompt or ritual card.
 4. Move group room data to Supabase when Sprint 5 access gates are met.
+
+## Book Catalog Mini-Sprint
+
+Status: Approved and implemented for local working model.
+
+Purpose: deepen current-book setup so group rooms and discussions can rely on real book metadata instead of only manual title entry.
+
+Completed:
+
+- Added a server-side Google Books search endpoint at `/api/books/search`.
+- Kept the Google Books key out of committed source by using `GOOGLE_BOOKS_API_KEY`.
+- Added catalog search modes for all fields, title, author, ISBN, and subject.
+- Added catalog result cards with title, author, publication date, page count, categories, ISBN, description, and cover treatment.
+- Added one-click saving from catalog search into the local Reading Momentum book list.
+- Extended local book records with source, external ID, publisher, published date, description, categories, cover image URL, and ISBN fields.
+- Added compatibility normalization for older local book data and imported backups.
+
+Boundaries:
+
+- Google Books is treated as an external catalog, not the Reading Momentum user-data database.
+- User progress, groups, discussions, check-ins, and selected current books remain in the app repository layer.
+- Production requires the API key to be configured and restricted in the hosting environment.

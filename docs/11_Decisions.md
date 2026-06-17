@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-06-17: Use Google Books As External Catalog, Not User Database
+
+Decision: Reading Momentum may use Google Books API for public book discovery and metadata enrichment, while app-owned user data remains in Reading Momentum persistence.
+
+Reason: The product needs deeper book search and richer current-book context for check-ins, discussions, and group rooms. Google Books provides searchable public volume metadata, but it should not become the source of truth for user progress, groups, discussions, or accountability data.
+
+Alternatives considered:
+
+- Continue manual-only book entry
+- Store all user book state in Google Books
+- Wait for Supabase before adding book search
+
+Research support: Google Books API documentation defines public volume search through `/books/v1/volumes` with required `q`, optional fielded queries such as `intitle`, `inauthor`, `isbn`, and API-key identification for public data.
+
+Future review date: Before production launch with restricted API key and hosted environment variables.
+
 ## 2026-06-16: Harden Vercel Preview Before Persistence Expansion
 
 Decision: Sprint 4 may include deployment hardening that makes the live Vercel preview feel product-ready, while keeping local-first storage and deferring Supabase-backed persistence until access is confirmed.

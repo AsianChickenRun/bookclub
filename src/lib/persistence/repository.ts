@@ -7,6 +7,7 @@ import {
   createMockGroup,
   getMostRecentBook,
   joinMockGroup,
+  normalizeMockState,
   readMockState,
   saveMockProfile,
   signInMockUser,
@@ -36,6 +37,15 @@ export type {
 export type AddBookInput = {
   title: string;
   author: string;
+  externalSource?: "manual" | "google_books";
+  externalId?: string | null;
+  publisher?: string | null;
+  publishedDate?: string | null;
+  description?: string;
+  categories?: string[];
+  coverImageUrl?: string | null;
+  isbn10?: string | null;
+  isbn13?: string | null;
   format: ReadingFormat;
   goalType: ReadingGoalType;
   totalPages?: number | null;
@@ -95,16 +105,7 @@ function createLocalRepository(): ReadingMomentumRepository {
     },
     async importState(serializedState) {
       const parsed = JSON.parse(serializedState) as Partial<MockAppState>;
-      const nextState: MockAppState = {
-        user: parsed.user ?? null,
-        profile: parsed.profile ?? null,
-        groups: parsed.groups ?? [],
-        books: parsed.books ?? [],
-        readingLogs: parsed.readingLogs ?? [],
-        activities: parsed.activities ?? [],
-        discussionPosts: parsed.discussionPosts ?? [],
-        discussionComments: parsed.discussionComments ?? []
-      };
+      const nextState = normalizeMockState(parsed);
       writeMockState(nextState);
       return nextState;
     },
