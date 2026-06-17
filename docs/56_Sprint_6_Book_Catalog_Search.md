@@ -48,6 +48,7 @@ Google Books provides:
 - Added one-click `Add to my books` behavior.
 - Added duplicate-save protection so matching Google volume IDs or ISBNs reuse the existing local book.
 - Extended local book records with catalog metadata.
+- Added group-room metadata display for session focus, composer attachment preview, and thread cards.
 - Added compatibility normalization for older local books and imported backups.
 - Added direct book search entry points from group discussion creation.
 
@@ -70,5 +71,5 @@ Google Books provides:
 
 - Add production environment variable in Vercel.
 - Restrict the Google Books key by API and allowed origins/referrers.
-- Use book metadata in group-room session cards and spoiler context.
 - Add browser smoke coverage for search refinements, load-more pagination, and duplicate-save prevention.
+- Consider storing a small discussion attachment snapshot later, such as cover URL, author, published year, ISBN, and page count, so thread cards remain rich after future cleanup or persistence migrations.

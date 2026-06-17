@@ -51,6 +51,7 @@ Out of scope:
 - Added a session prompt card to make the group page feel more like an active reading session.
 - Added Google Books catalog search inside the room discussion composer so users can find, save, and attach a book without leaving the room.
 - Added compact group-room catalog pagination and sort support for deeper book attachment.
+- Added richer group-room book context so session focus, composer preview, and thread cards can show cover, edition details, categories, page count, source, ISBN, and short description when available.
 - Added local room members so the group session can show planning readers before real account-backed membership is connected.
 - Moved book search and planning-reader creation behind secondary controls to keep the room calmer and more reading-first.
 - Added editable local room rituals so each specific group page has a weekly table prompt and focus note.
@@ -66,6 +67,7 @@ Out of scope:
 - Group room allows starting a new discussion without leaving the specific group page.
 - Group room allows searching for a book and attaching it to a room discussion without leaving the page.
 - Group room book search can load more catalog results while staying secondary to discussion creation.
+- Group room shows richer book metadata in session focus and attached discussion cards when the local book record is available.
 - Group room supports local planning readers with display name, status, and optional current book.
 - Group room supports a local weekly ritual with cadence, prompt, and focus note.
 - Group room allows the weekly table prompt to be copied into the discussion composer without leaving the room.
@@ -111,6 +113,8 @@ UI adjustments:
 - The weekly ritual uses `This week at the table` copy with three low-pressure prompts: settle in, leave a page note, and close the week.
 - The table prompt can be edited locally by cadence, prompt, and focus note.
 - The table prompt can be used as the starting point for a room discussion through the existing composer.
+- Current-book context uses a compact book panel with cover, author, edition details, source, categories, and a short description when available.
+- Discussion attachments use compact book strips with title-only fallback for stale local records.
 
 ## Local Prototype Boundaries
 
@@ -128,6 +132,7 @@ UI adjustments:
 - Browser smoke should also cover editing the room ritual and confirming it persists after refresh in the same browser.
 - Browser smoke should also cover using the table prompt, confirming it preloads and focuses the discussion composer, protects existing custom drafts, clears stale spoiler/book selections, and posts the resulting thread.
 - Browser smoke should also cover adding a quiet check-in from one room and confirming it does not increment another room's reading-note count.
+- Browser smoke should also cover book metadata edge cases: missing cover, missing ISBN, manual books, duplicate/enriched records, mobile layout, stale attachments, and Google Books results with sparse metadata.
 
 Future hardening:
 

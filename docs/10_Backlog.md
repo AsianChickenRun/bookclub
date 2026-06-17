@@ -359,6 +359,7 @@ Acceptance criteria:
 - User can add a searched book into their current reading list.
 - Adding an already saved catalog result reuses the existing local book instead of creating a duplicate.
 - Saved searched books preserve useful metadata such as source ID, author, publisher, published date, page count, categories, ISBN, cover image URL, and description when available.
+- Saved book metadata can enrich group-room session focus and attached discussion context without making Google Books the app database.
 - User can still enter title, author, format, genre, and start date manually.
 - User can choose a goal type: pages, chapters, minutes, or sessions.
 - User can enter total pages or chapters when relevant.
@@ -477,6 +478,7 @@ Acceptance criteria:
 - User can create discussion posts from a specific group room.
 - User can search for a book from the group room and attach the selected result to the discussion.
 - User can start a group-room discussion from the current weekly table prompt.
+- Group-room thread cards display richer attached-book metadata when the local book record is available, with title-only fallback for stale attachments.
 - Users can reply to posts.
 - Replies support short encouragement.
 - Thread structure supports later spoiler controls.

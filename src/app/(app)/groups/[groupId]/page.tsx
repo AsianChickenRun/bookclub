@@ -92,6 +92,49 @@ function recentDateKeys(count: number) {
   });
 }
 
+type RoomBook = MockAppState["books"][number];
+
+function shortPublishedDate(book: RoomBook) {
+  return book.publishedDate?.slice(0, 4) ?? "";
+}
+
+function bookMetadataPills(book: RoomBook) {
+  return [
+    book.totalPages ? `${book.totalPages} pages` : "",
+    book.categories[0] ?? "",
+    book.externalSource === "google_books" ? "Saved from Google Books" : "",
+    book.isbn13 ? `ISBN ${book.isbn13}` : book.isbn10 ? `ISBN ${book.isbn10}` : ""
+  ].filter(Boolean);
+}
+
+function bookEditionLine(book: RoomBook) {
+  return [
+    shortPublishedDate(book) ? `Published ${shortPublishedDate(book)}` : "",
+    book.publisher ? `by ${book.publisher}` : "",
+    book.totalPages ? `${book.totalPages} pages` : "",
+    book.externalSource === "google_books" ? "Saved from Google Books" : ""
+  ].filter(Boolean).join(" · ");
+}
+
+function bookDescriptionExcerpt(book: RoomBook, maxLength = 138) {
+  const description = book.description.trim();
+  if (!description) return "";
+  return description.length > maxLength ? `${description.slice(0, maxLength).trim()}...` : description;
+}
+
+function BookCover({ book, size = "large" }: { book: RoomBook; size?: "large" | "small" }) {
+  return (
+    <div
+      aria-label={book.title}
+      className={`rounded-app border border-[#ded5c6] bg-[#f2e7d8] bg-cover bg-center shadow-sm ${
+        size === "large" ? "min-h-36" : "min-h-20"
+      }`}
+      role="img"
+      style={book.coverImageUrl ? { backgroundImage: `url(${book.coverImageUrl})` } : undefined}
+    />
+  );
+}
+
 export default function GroupRoomPage() {
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
@@ -379,7 +422,11 @@ export default function GroupRoomPage() {
       currentPage: 0,
       currentChapter: null
     });
-    const addedBook = nextState.books.find((item) => item.externalId === book.id) ?? nextState.books[0];
+    const addedBook =
+      nextState.books.find((item) => item.externalSource === "google_books" && item.externalId === book.id) ??
+      nextState.books.find((item) => Boolean(book.isbn13) && item.isbn13 === book.isbn13) ??
+      nextState.books.find((item) => Boolean(book.isbn10) && item.isbn10 === book.isbn10) ??
+      nextState.books[0];
 
     setState(nextState);
     setRelatedBookId(addedBook.id);
@@ -484,25 +531,50 @@ export default function GroupRoomPage() {
           </div>
           <div className="p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
+            <div className="flex-1">
               <p className="eyebrow">Session focus</p>
-              <h2 className="mt-3 text-2xl font-black text-ink">
-                {currentBook ? currentBook.title : "Choose a current book"}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-700">
-                {currentBook
-                  ? `Use this room to check in, discuss, and keep spoilers clear around ${currentBook.author || "this book"}.`
-                  : "Add a current book so the room can center around real reading progress."}
-              </p>
-              {currentBook?.categories.length ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {currentBook.categories.slice(0, 2).map((category) => (
-                    <span className="warm-pill" key={category}>
-                      {category}
-                    </span>
-                  ))}
+              {currentBook ? (
+                <div className="mt-3 grid gap-4 sm:grid-cols-[6.25rem_1fr]">
+                  <BookCover book={currentBook} />
+                  <div>
+                    <h2 className="text-2xl font-black text-ink">{currentBook.title}</h2>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">
+                      {currentBook.author || "Unknown author"}
+                    </p>
+                    {bookEditionLine(currentBook) ? (
+                      <p className="mt-1 text-sm font-bold text-slate-600">
+                        {bookEditionLine(currentBook)}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-sm font-bold text-slate-600">
+                        Edition details not saved yet.
+                      </p>
+                    )}
+                    {bookDescriptionExcerpt(currentBook) ? (
+                      <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-700">
+                        About this edition: {bookDescriptionExcerpt(currentBook)}
+                      </p>
+                    ) : null}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {bookMetadataPills(currentBook).slice(0, 3).map((item) => (
+                        <span className="status-pill" key={item}>
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-slate-700">
+                      Keep notes and spoilers tied to this edition.
+                    </p>
+                  </div>
                 </div>
-              ) : null}
+              ) : (
+                <>
+                  <h2 className="mt-3 text-2xl font-black text-ink">Choose a current book</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">
+                    Add a current book so the room can center around real reading progress.
+                  </p>
+                </>
+              )}
             </div>
             <span className="status-pill">
               {group.role}
@@ -848,26 +920,29 @@ export default function GroupRoomPage() {
             </div>
             {selectedDiscussionBook ? (
               <div className="note-card grid gap-3 p-3 sm:grid-cols-[3.5rem_1fr]">
-                <div
-                  aria-label={selectedDiscussionBook.title}
-                  className="min-h-16 rounded-app border border-[#ded5c6] bg-[#f2e7d8] bg-cover bg-center"
-                  role="img"
-                  style={
-                    selectedDiscussionBook.coverImageUrl
-                      ? { backgroundImage: `url(${selectedDiscussionBook.coverImageUrl})` }
-                      : undefined
-                  }
-                />
+                <BookCover book={selectedDiscussionBook} size="small" />
                 <div>
+                  <p className="text-xs font-black uppercase text-[#315c48]">Attached book</p>
                   <p className="text-sm font-black text-ink">{selectedDiscussionBook.title}</p>
                   <p className="mt-1 text-sm text-slate-700">
                     {selectedDiscussionBook.author || "Unknown author"}
-                    {selectedDiscussionBook.publishedDate ? ` - ${selectedDiscussionBook.publishedDate}` : ""}
+                    {shortPublishedDate(selectedDiscussionBook)
+                      ? ` - ${shortPublishedDate(selectedDiscussionBook)}`
+                      : ""}
                   </p>
+                  {bookEditionLine(selectedDiscussionBook) ? (
+                    <p className="mt-1 text-sm font-bold text-slate-600">
+                      {bookEditionLine(selectedDiscussionBook)}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-sm font-bold text-slate-600">
+                      Edition details not saved yet.
+                    </p>
+                  )}
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {selectedDiscussionBook.categories.slice(0, 2).map((category) => (
-                      <span className="warm-pill" key={category}>
-                        {category}
+                    {bookMetadataPills(selectedDiscussionBook).slice(0, 3).map((item) => (
+                      <span className="status-pill" key={item}>
+                        {item}
                       </span>
                     ))}
                   </div>
@@ -1030,6 +1105,7 @@ export default function GroupRoomPage() {
                   state.discussionComments.filter((comment) => comment.postId === post.id);
                 const isProtected = post.spoilerLevel !== "none";
                 const isRevealed = revealedPostIds.has(post.id);
+                const attachedBook = state.books.find((book) => book.id === post.relatedBookId);
 
                 return (
                   <article className="note-card p-4" key={post.id}>
@@ -1074,7 +1150,35 @@ export default function GroupRoomPage() {
                       </>
                     )}
 
-                    {post.relatedBookTitle ? (
+                    {attachedBook ? (
+                      <div className="room-card mt-4 grid gap-3 p-3 sm:grid-cols-[4rem_1fr]">
+                        <BookCover book={attachedBook} size="small" />
+                        <div>
+                          <p className="text-xs font-black uppercase text-[#315c48]">
+                            Book in this thread
+                          </p>
+                          <p className="mt-1 text-sm font-black text-ink">{attachedBook.title}</p>
+                          <p className="mt-1 text-sm text-slate-700">
+                            {attachedBook.author || "Unknown author"}
+                            {shortPublishedDate(attachedBook)
+                              ? ` - ${shortPublishedDate(attachedBook)}`
+                              : ""}
+                          </p>
+                          {bookDescriptionExcerpt(attachedBook) ? (
+                            <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-700">
+                              Book note: {bookDescriptionExcerpt(attachedBook)}
+                            </p>
+                          ) : null}
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {bookMetadataPills(attachedBook).slice(0, 3).map((item) => (
+                              <span className="status-pill" key={item}>
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : post.relatedBookTitle ? (
                       <p className="mt-3 text-sm font-bold text-slate-600">
                         Attached to {post.relatedBookTitle}
                       </p>
