@@ -1,7 +1,7 @@
 # Sprint 6 Plan: Group Room Working Model
 
-Status: In Progress
-Version: 0.1
+Status: Local Preview Ready
+Version: 1.0
 Owner: Product Manager
 Date: 2026-06-17
 
@@ -78,7 +78,9 @@ Out of scope:
 
 ## Next Recommended Slice
 
-After this page lands, the next useful group improvements are:
+The local reading-room preview is ready. See `57_Sprint_6_Local_Preview_Readiness.md` for pass criteria, known gaps, and next setup requirements.
+
+After this preview, the next useful group improvements are:
 
 1. Add member-specific reading progress once real membership exists.
 2. Move group room data to Supabase when Sprint 5 access gates are met.
