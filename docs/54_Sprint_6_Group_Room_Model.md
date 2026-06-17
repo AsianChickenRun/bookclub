@@ -50,6 +50,8 @@ Out of scope:
 - Added a lightweight local room roster derived from local profile and room activity.
 - Added a session prompt card to make the group page feel more like an active reading session.
 - Added Google Books catalog search inside the room discussion composer so users can find, save, and attach a book without leaving the room.
+- Added local room members so the group session can show planning readers before real account-backed membership is connected.
+- Moved book search and planning-reader creation behind secondary controls to keep the room calmer and more reading-first.
 
 ## Acceptance Criteria
 
@@ -58,6 +60,7 @@ Out of scope:
 - Group room shows session context, stats, discussions, replies, and activity.
 - Group room allows starting a new discussion without leaving the specific group page.
 - Group room allows searching for a book and attaching it to a room discussion without leaving the page.
+- Group room supports local planning readers with display name, status, and optional current book.
 - Spoiler-marked discussions are protected until revealed.
 - Build, lint, and typecheck pass.
 - Vercel deployment remains reachable after sync.
@@ -85,8 +88,30 @@ Completed:
 - New room discussions support no-spoiler, progress-locked, and explicit spoiler labels.
 - Optional spoiler page and chapter inputs are available at creation time.
 - The empty thread state now points users to the in-room discussion composer.
-- The room includes a lightweight local roster based on local profile, posts, replies, and activity.
+- The room includes a lightweight local roster with planning-reader records.
+- Local planning readers can be added from the specific group page with reading status and optional current book.
 - The room includes a session prompt card grounded in the current book when one exists.
+
+UI adjustments:
+
+- Book catalog search is hidden behind `Find another book` so the main discussion path stays compact.
+- Planning-reader creation is hidden behind `Add planning reader`.
+- Room language was softened from dashboard wording toward reading-room wording.
+- Invalid nested form risk in the room composer was removed.
+- Check-ins this week are counted from group-scoped activity records, not unscoped local logs.
+
+## Local Prototype Boundaries
+
+- Group rooms are same-browser local rooms until Supabase persistence is connected.
+- Invite codes and planning readers model the intended experience, but they do not create shared cross-device membership yet.
+- Group-visible check-ins still attach to the first local group from the Today page; the room page displays only activity already scoped to that room.
+- Production group membership, group-specific check-in targeting, and private access rules remain Supabase migration work.
+
+## Verification Notes
+
+- Missing `GOOGLE_BOOKS_API_KEY` should fail gracefully in book search areas.
+- A configured key should return attachable catalog results.
+- Browser smoke should cover: create group, open room, add planning reader, search and attach book, start discussion, reveal/hide spoiler thread, reply, refresh, and reopen the same local group URL.
 
 ## Book Catalog Mini-Sprint
 

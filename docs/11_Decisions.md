@@ -1,5 +1,37 @@
 # Decision Log
 
+## 2026-06-17: Use Local Planning Readers For Group Room Depth
+
+Decision: Sprint 6 may store local planning-reader records for a group room, including display name, reading status, and optional current book, while real account-backed membership remains deferred to Supabase persistence.
+
+Reason: The specific group page needs to feel like a working room before full backend membership exists. Local planning readers let the PM and tester model a group session without implying production-ready identity, privacy, or realtime presence.
+
+Alternatives considered:
+
+- Keep the roster derived only from post and reply author names
+- Wait for Supabase membership before showing any roster
+- Build fake realtime presence or full invite management
+
+Research support: Sprint 6 is explicitly local-first, with Supabase persistence, realtime updates, and real member lists out of scope until access gates are met.
+
+Future review date: Supabase-backed group migration.
+
+## 2026-06-17: Keep Sprint 6 Group Rooms Same-Browser Local Until Persistence
+
+Decision: Sprint 6 group rooms are approved as same-browser local working rooms. Cross-device invite acceptance, real access control, and account-backed member state remain deferred to the Supabase-backed persistence sprint.
+
+Reason: The local model now supports room sessions, discussions, replies, spoiler controls, planning readers, and book attachments. Treating this as a production shared-room implementation would overclaim the current storage model.
+
+Alternatives considered:
+
+- Block group-room depth until Supabase is connected
+- Pretend local invite codes create shared rooms
+- Add a complex fake syncing layer
+
+Research support: Sprint 6 scope is local-first while Supabase persistence, realtime updates, and real member lists are explicitly out of scope.
+
+Future review date: Sprint 5/Supabase activation.
+
 ## 2026-06-17: Add Book Catalog Search Inside Group Rooms
 
 Decision: Sprint 6 group rooms may include direct Google Books search inside the room discussion composer, saving selected catalog results into local Reading Momentum books before attaching them to the discussion.

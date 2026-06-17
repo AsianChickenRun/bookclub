@@ -18,6 +18,16 @@ export type MockGroup = {
   role: "owner" | "member";
 };
 
+export type MockGroupMember = {
+  id: string;
+  groupId: string;
+  displayName: string;
+  role: "owner" | "member";
+  readingStatus: "reading" | "checked_in" | "quiet";
+  currentBookTitle: string | null;
+  joinedAt: string;
+};
+
 export type ReadingFormat = "print" | "ebook" | "audiobook" | "mixed";
 
 export type ReadingGoalType = "pages" | "chapters" | "minutes" | "sessions";
@@ -111,6 +121,7 @@ export type MockAppState = {
   user: MockUser | null;
   profile: MockProfile | null;
   groups: MockGroup[];
+  groupMembers: MockGroupMember[];
   books: MockUserBook[];
   readingLogs: MockReadingLog[];
   activities: MockActivity[];
@@ -124,6 +135,7 @@ const emptyState: MockAppState = {
   user: null,
   profile: null,
   groups: [],
+  groupMembers: [],
   books: [],
   readingLogs: [],
   activities: [],
@@ -162,10 +174,25 @@ function normalizeBook(book: Partial<MockUserBook>): MockUserBook {
   };
 }
 
+function normalizeGroupMember(member: Partial<MockGroupMember>): MockGroupMember {
+  const now = new Date().toISOString();
+
+  return {
+    id: member.id ?? crypto.randomUUID(),
+    groupId: member.groupId ?? "",
+    displayName: member.displayName ?? "Reader",
+    role: member.role ?? "member",
+    readingStatus: member.readingStatus ?? "quiet",
+    currentBookTitle: member.currentBookTitle ?? null,
+    joinedAt: member.joinedAt ?? now
+  };
+}
+
 export function normalizeMockState(state: Partial<MockAppState>): MockAppState {
   return {
     ...emptyState,
     ...state,
+    groupMembers: (state.groupMembers ?? []).map(normalizeGroupMember),
     books: (state.books ?? []).map(normalizeBook)
   };
 }
@@ -215,6 +242,7 @@ export function saveMockProfile(profile: MockProfile) {
 
 export function createMockGroup(name: string, description: string) {
   const current = readMockState();
+  const now = new Date().toISOString();
   const group: MockGroup = {
     id: crypto.randomUUID(),
     name,
@@ -222,14 +250,28 @@ export function createMockGroup(name: string, description: string) {
     inviteCode: Math.random().toString(16).slice(2, 10).toUpperCase(),
     role: "owner"
   };
+  const member: MockGroupMember = {
+    id: crypto.randomUUID(),
+    groupId: group.id,
+    displayName: current.profile?.displayName ?? "You",
+    role: "owner",
+    readingStatus: "reading",
+    currentBookTitle: getMostRecentBook(current)?.title ?? null,
+    joinedAt: now
+  };
 
-  const nextState = { ...current, groups: [group, ...current.groups] };
+  const nextState = {
+    ...current,
+    groups: [group, ...current.groups],
+    groupMembers: [member, ...current.groupMembers]
+  };
   writeMockState(nextState);
   return nextState;
 }
 
 export function joinMockGroup(inviteCode: string) {
   const current = readMockState();
+  const now = new Date().toISOString();
   const normalized = inviteCode.trim().toUpperCase();
   const group: MockGroup = {
     id: crypto.randomUUID(),
@@ -238,8 +280,46 @@ export function joinMockGroup(inviteCode: string) {
     inviteCode: normalized || "DEMO2026",
     role: "member"
   };
+  const member: MockGroupMember = {
+    id: crypto.randomUUID(),
+    groupId: group.id,
+    displayName: current.profile?.displayName ?? "You",
+    role: "member",
+    readingStatus: "reading",
+    currentBookTitle: getMostRecentBook(current)?.title ?? null,
+    joinedAt: now
+  };
 
-  const nextState = { ...current, groups: [group, ...current.groups] };
+  const nextState = {
+    ...current,
+    groups: [group, ...current.groups],
+    groupMembers: [member, ...current.groupMembers]
+  };
+  writeMockState(nextState);
+  return nextState;
+}
+
+export function addMockGroupMember(input: {
+  groupId: string;
+  displayName: string;
+  readingStatus: MockGroupMember["readingStatus"];
+  currentBookTitle?: string | null;
+}) {
+  const current = readMockState();
+  const member: MockGroupMember = {
+    id: crypto.randomUUID(),
+    groupId: input.groupId,
+    displayName: input.displayName,
+    role: "member",
+    readingStatus: input.readingStatus,
+    currentBookTitle: input.currentBookTitle ?? null,
+    joinedAt: new Date().toISOString()
+  };
+
+  const nextState = {
+    ...current,
+    groupMembers: [member, ...current.groupMembers]
+  };
   writeMockState(nextState);
   return nextState;
 }

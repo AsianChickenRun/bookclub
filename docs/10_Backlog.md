@@ -323,7 +323,7 @@ Acceptance criteria:
 
 - User can create a group with name and optional description.
 - Creator becomes group owner or admin.
-- Group has a private member list.
+- Group has a private member list. Local working model may use planning readers until real account-backed membership is connected.
 - Group page includes placeholders for feed, check-ins, discussions, and leaderboard.
 
 Docs: 04_Features.md, 06_Data_Model.md
@@ -338,6 +338,7 @@ Acceptance criteria:
 
 - User can join a group through an invite flow or invite code.
 - Group membership is recorded.
+- Local working model can add planning readers to a group room for prototype session depth.
 - Non-members cannot view private group content.
 - Members can see other members in the group.
 

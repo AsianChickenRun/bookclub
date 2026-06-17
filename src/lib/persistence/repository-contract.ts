@@ -1,6 +1,7 @@
 import type {
   AddBookInput,
   AddDiscussionPostInput,
+  AddGroupMemberInput,
   AddReadingLogInput,
   ReadingMomentumRepository
 } from "./repository";
@@ -16,6 +17,7 @@ type RepositoryContract = {
   saveProfile(profile: MockProfile): Promise<MockAppState>;
   createGroup(name: string, description: string): Promise<MockAppState>;
   joinGroup(inviteCode: string): Promise<MockAppState>;
+  addGroupMember(input: AddGroupMemberInput): Promise<MockAppState>;
   addBook(input: AddBookInput): Promise<MockAppState>;
   addReadingLog(input: AddReadingLogInput): Promise<MockAppState>;
   addDiscussionPost(input: AddDiscussionPostInput): Promise<MockAppState>;
