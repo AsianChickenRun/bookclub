@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import {
   getRepository,
+  type CheckInUnit,
   type MockAppState,
   type MockGroupMember,
   type MockGroupRitual,
@@ -17,6 +18,8 @@ const spoilerLevels: { value: SpoilerLevel; label: string }[] = [
   { value: "progress_locked", label: "Progress locked" },
   { value: "explicit", label: "Explicit spoiler" }
 ];
+
+const checkInUnits: CheckInUnit[] = ["pages", "chapters", "minutes", "audiobook_minutes", "sessions"];
 
 const bookSearchModes = [
   { value: "all", label: "All fields" },
@@ -101,6 +104,11 @@ export default function GroupRoomPage() {
   const [ritualPrompt, setRitualPrompt] = useState("");
   const [ritualFocusNote, setRitualFocusNote] = useState("");
   const [showRitualForm, setShowRitualForm] = useState(false);
+  const [checkInBookId, setCheckInBookId] = useState("");
+  const [checkInUnit, setCheckInUnit] = useState<CheckInUnit>("pages");
+  const [checkInAmount, setCheckInAmount] = useState("");
+  const [checkInSkipped, setCheckInSkipped] = useState(false);
+  const [checkInNote, setCheckInNote] = useState("");
 
   useEffect(() => {
     getRepository().getState().then((nextState) => {
@@ -111,6 +119,7 @@ export default function GroupRoomPage() {
         setRitualPrompt(existingRitual.prompt);
         setRitualFocusNote(existingRitual.focusNote);
       }
+      setCheckInBookId(getRepository().getMostRecentBook(nextState)?.id ?? "");
     });
   }, [groupId]);
 
@@ -245,6 +254,46 @@ export default function GroupRoomPage() {
     setState(nextState);
     setShowRitualForm(false);
     setMessage("Room ritual saved.");
+  }
+
+  async function handleRoomCheckIn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const book = state?.books.find((item) => item.id === checkInBookId) ?? currentBook;
+
+    if (!book) {
+      setMessage("Add a current book before leaving a quiet check-in.");
+      return;
+    }
+
+    const numericAmount = checkInAmount.trim() ? Number(checkInAmount) : 0;
+
+    if (!checkInSkipped && (!Number.isFinite(numericAmount) || numericAmount <= 0)) {
+      setMessage("Enter a reading amount, or mark this as a quiet reading week.");
+      return;
+    }
+
+    if (numericAmount < 0) {
+      setMessage("Progress values must be zero or greater.");
+      return;
+    }
+
+    const nextState = await getRepository().addReadingLog({
+      userBookId: book.id,
+      groupId,
+      unit: checkInUnit,
+      amount: checkInSkipped ? 0 : numericAmount,
+      skipped: checkInSkipped,
+      visibility: "groups",
+      note: checkInNote.trim()
+    });
+
+    setState(nextState);
+    setCheckInBookId(book.id);
+    setCheckInAmount("");
+    setCheckInSkipped(false);
+    setCheckInNote("");
+    setMessage(checkInSkipped ? "Quiet reading week saved for this room." : "Your note is on the table.");
   }
 
   async function attachCatalogBook(book: BookSearchResult) {
@@ -414,6 +463,78 @@ export default function GroupRoomPage() {
               <dd className="mt-1 font-black text-ink">{group.inviteCode}</dd>
             </div>
           </dl>
+
+          <form className="room-card mt-6 grid gap-3 p-4" onSubmit={handleRoomCheckIn}>
+            <div>
+              <p className="text-sm font-black text-ink">Leave a quiet check-in</p>
+              <p className="mt-1 text-sm leading-6 text-slate-700">
+                Share a page, a line, or a small reading note. Short is welcome.
+              </p>
+            </div>
+            <label className="grid gap-2 text-sm font-bold text-slate-700">
+              Book
+              <select
+                className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                onChange={(event) => setCheckInBookId(event.target.value)}
+                value={checkInBookId}
+              >
+                <option value="">Use current book</option>
+                {state.books.map((book) => (
+                  <option key={book.id} value={book.id}>
+                    {book.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Where are you in the book?
+                <select
+                  className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                  disabled={checkInSkipped}
+                  onChange={(event) => setCheckInUnit(event.target.value as CheckInUnit)}
+                  value={checkInUnit}
+                >
+                  {checkInUnits.map((unit) => (
+                    <option key={unit} value={unit}>
+                      {unit}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Amount
+                <input
+                  className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                  disabled={checkInSkipped}
+                  min="0"
+                  onChange={(event) => setCheckInAmount(event.target.value)}
+                  type="number"
+                  value={checkInAmount}
+                />
+              </label>
+            </div>
+            <label className="flex items-center gap-3 rounded-app border border-[#dedbd2] bg-[#fffdf8] p-3 text-sm font-bold text-slate-700">
+              <input
+                checked={checkInSkipped}
+                onChange={(event) => setCheckInSkipped(event.target.checked)}
+                type="checkbox"
+              />
+              Quiet reading week
+            </label>
+            <label className="grid gap-2 text-sm font-bold text-slate-700">
+              Optional note
+              <textarea
+                className="min-h-20 rounded-app border border-[#dedbd2] px-3 py-2"
+                onChange={(event) => setCheckInNote(event.target.value)}
+                placeholder="I read to page 42, and I am still thinking about..."
+                value={checkInNote}
+              />
+            </label>
+            <button className="primary-button justify-self-start" type="submit">
+              Add check-in
+            </button>
+          </form>
 
           <div className="room-card mt-6 p-4">
             <p className="text-sm font-black text-ink">This week at the table</p>

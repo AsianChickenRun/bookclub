@@ -374,9 +374,12 @@ As a user, I want to log reading progress in under 30 seconds so I can keep my h
 Acceptance criteria:
 
 - User can check in for a current book.
+- User can leave a group-scoped check-in from a specific group room.
+- User can choose which local group receives a group-visible check-in from Today.
 - Supported inputs include pages read, chapters completed, minutes read, audiobook minutes, session completed, and skipped today.
 - Check-in updates current progress when applicable.
 - Check-in creates activity visible to the user and eligible for group feed.
+- Specific room check-ins create activity scoped to that room in the local working model.
 - Mobile flow is short and clear.
 
 Docs: 04_Features.md, 08_UI_UX.md

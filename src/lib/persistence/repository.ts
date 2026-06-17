@@ -64,6 +64,7 @@ export type AddBookInput = {
 
 export type AddReadingLogInput = {
   userBookId: string;
+  groupId?: string | null;
   unit: CheckInUnit;
   amount: number;
   skipped: boolean;

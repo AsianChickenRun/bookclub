@@ -1,5 +1,37 @@
 # Decision Log
 
+## 2026-06-17: Add Room-Scoped Local Check-Ins
+
+Decision: Sprint 6 group rooms may include local check-ins scoped to the specific room through an optional local `groupId` on reading logs.
+
+Reason: A working group session should let a reader leave a small progress note in the room they are viewing. This reduces navigation friction and fixes the local prototype issue where room counts could rely on general group-visible logs.
+
+Alternatives considered:
+
+- Keep all check-ins on Today only
+- Wait for Supabase before adding group-specific check-in targeting
+- Add a full multi-group targeting system to Today during this slice
+
+Research support: Sprint 6 is focused on local group-room depth; UX guidance recommends a compact, low-pressure check-in close to the current book/session focus.
+
+Future review date: Supabase-backed group check-in migration.
+
+## 2026-06-17: Add Explicit Local Group Targeting On Today
+
+Decision: Today page group-visible check-ins should require selecting the local group that receives the note.
+
+Reason: The previous local shortcut sent group-visible check-ins to the first local group, which was confusing once multiple groups and specific rooms existed. Explicit targeting makes the local working model more predictable without introducing production membership logic.
+
+Alternatives considered:
+
+- Keep first-group fallback only
+- Remove group-visible Today check-ins
+- Wait for Supabase membership before fixing local targeting
+
+Research support: QA review identified first-group fallback as the main remaining scoping risk for local room check-ins.
+
+Future review date: Supabase-backed group membership migration.
+
 ## 2026-06-17: Add Local Weekly Room Rituals
 
 Decision: Sprint 6 group rooms may include editable local weekly rituals with cadence, prompt, and focus note, using calm table-oriented copy.

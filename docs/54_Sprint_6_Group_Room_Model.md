@@ -53,6 +53,8 @@ Out of scope:
 - Added local room members so the group session can show planning readers before real account-backed membership is connected.
 - Moved book search and planning-reader creation behind secondary controls to keep the room calmer and more reading-first.
 - Added editable local room rituals so each specific group page has a weekly table prompt and focus note.
+- Added group-scoped local check-ins directly inside the specific room page.
+- Added explicit group targeting for group-visible check-ins on Today.
 
 ## Acceptance Criteria
 
@@ -63,6 +65,7 @@ Out of scope:
 - Group room allows searching for a book and attaching it to a room discussion without leaving the page.
 - Group room supports local planning readers with display name, status, and optional current book.
 - Group room supports a local weekly ritual with cadence, prompt, and focus note.
+- Group room supports quiet check-ins scoped to that room.
 - Spoiler-marked discussions are protected until revealed.
 - Build, lint, and typecheck pass.
 - Vercel deployment remains reachable after sync.
@@ -108,7 +111,8 @@ UI adjustments:
 
 - Group rooms are same-browser local rooms until Supabase persistence is connected.
 - Invite codes and planning readers model the intended experience, but they do not create shared cross-device membership yet.
-- Group-visible check-ins still attach to the first local group from the Today page; the room page displays only activity already scoped to that room.
+- Today page group-visible check-ins now ask which local group should receive the note.
+- Specific group page check-ins are scoped to that room through local `groupId`.
 - Production group membership, group-specific check-in targeting, and private access rules remain Supabase migration work.
 
 ## Verification Notes
@@ -117,6 +121,35 @@ UI adjustments:
 - A configured key should return attachable catalog results.
 - Browser smoke should cover: create group, open room, add planning reader, search and attach book, start discussion, reveal/hide spoiler thread, reply, refresh, and reopen the same local group URL.
 - Browser smoke should also cover editing the room ritual and confirming it persists after refresh in the same browser.
+- Browser smoke should also cover adding a quiet check-in from one room and confirming it does not increment another room's reading-note count.
+
+## Room-Scoped Check-In Slice
+
+Status: Implemented for local working model.
+
+Purpose: let the specific group page support the core group-session action directly, without sending the user back to Today.
+
+Implemented:
+
+- Added optional `groupId` to local reading logs.
+- Existing local reading logs normalize safely with `groupId: null`.
+- Added `Leave a quiet check-in` form inside `/groups/[groupId]`.
+- Room check-ins create group-scoped activity for the current room.
+- Room check-ins update the local reader's room status to `checked_in`.
+- Room reading-note count now reflects group-scoped check-in activity.
+- Today check-ins can target a selected group when visibility is `Group-visible`.
+- Recent Today check-ins show the group name when one is attached.
+
+Copy direction:
+
+- `Leave a quiet check-in`
+- `Share a page, a line, or a small reading note. Short is welcome.`
+- `Your note is on the table.`
+
+Boundaries:
+
+- Room check-ins are local-only until Supabase persistence is connected.
+- Today check-ins are still local-only and do not enforce real membership until Supabase is connected.
 
 ## Weekly Room Ritual Slice
 

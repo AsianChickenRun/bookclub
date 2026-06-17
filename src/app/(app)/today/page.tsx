@@ -69,6 +69,7 @@ function getMomentumSummary(state: MockAppState | null) {
 export default function TodayPage() {
   const [state, setState] = useState<MockAppState | null>(null);
   const [selectedBookId, setSelectedBookId] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState("");
   const [unit, setUnit] = useState<CheckInUnit>("pages");
   const [amount, setAmount] = useState("");
   const [skipped, setSkipped] = useState(false);
@@ -80,6 +81,7 @@ export default function TodayPage() {
     getRepository().getState().then((nextState) => {
       setState(nextState);
       setSelectedBookId(getRepository().getMostRecentBook(nextState)?.id ?? "");
+      setSelectedGroupId(nextState.groups[0]?.id ?? "");
     });
   }, []);
 
@@ -135,8 +137,14 @@ export default function TodayPage() {
       return;
     }
 
+    if (visibility === "groups" && !selectedGroupId) {
+      setMessage("Create or join a group before sharing a group-visible check-in.");
+      return;
+    }
+
     const nextState = await getRepository().addReadingLog({
       userBookId: currentBook.id,
+      groupId: visibility === "groups" ? selectedGroupId : null,
       unit,
       amount: skipped ? 0 : numericAmount,
       skipped,
@@ -269,6 +277,23 @@ export default function TodayPage() {
               <option value="groups">Group-visible</option>
             </select>
           </label>
+          {visibility === "groups" ? (
+            <label className="grid gap-2 text-sm font-bold text-slate-700">
+              Share with
+              <select
+                className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                onChange={(event) => setSelectedGroupId(event.target.value)}
+                value={selectedGroupId}
+              >
+                <option value="">Choose a group</option>
+                {state?.groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <label className="grid gap-2 text-sm font-bold text-slate-700">
             Optional note
             <textarea
@@ -329,6 +354,7 @@ export default function TodayPage() {
             {recentLogs.length ? (
               recentLogs.map((log) => {
                 const book = state?.books.find((item) => item.id === log.userBookId);
+                const group = state?.groups.find((item) => item.id === log.groupId);
                 return (
                   <article className="note-card p-4" key={log.id}>
                     <h3 className="font-black text-ink">{book?.title ?? "Unknown book"}</h3>
@@ -336,6 +362,11 @@ export default function TodayPage() {
                       {log.skipped ? "Skipped today" : `${log.amount} ${log.unit}`} -{" "}
                       {log.visibility}
                     </p>
+                    {group ? (
+                      <p className="mt-1 text-sm font-bold text-slate-600">
+                        Shared with {group.name}
+                      </p>
+                    ) : null}
                     {log.note ? <p className="mt-2 text-sm text-slate-600">{log.note}</p> : null}
                   </article>
                 );

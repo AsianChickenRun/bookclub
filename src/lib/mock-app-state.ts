@@ -81,6 +81,7 @@ export type MockUserBook = {
 
 export type MockReadingLog = {
   id: string;
+  groupId: string | null;
   userBookId: string;
   loggedForDate: string;
   unit: CheckInUnit;
@@ -227,13 +228,31 @@ function normalizeGroupRitual(ritual: Partial<MockGroupRitual>): MockGroupRitual
   };
 }
 
+function normalizeReadingLog(log: Partial<MockReadingLog>): MockReadingLog {
+  const now = new Date().toISOString();
+
+  return {
+    id: log.id ?? crypto.randomUUID(),
+    groupId: log.groupId ?? null,
+    userBookId: log.userBookId ?? "",
+    loggedForDate: log.loggedForDate ?? now.slice(0, 10),
+    unit: log.unit ?? "sessions",
+    amount: log.amount ?? 0,
+    skipped: log.skipped ?? false,
+    visibility: log.visibility ?? "private",
+    note: log.note ?? "",
+    createdAt: log.createdAt ?? now
+  };
+}
+
 export function normalizeMockState(state: Partial<MockAppState>): MockAppState {
   return {
     ...emptyState,
     ...state,
     groupMembers: (state.groupMembers ?? []).map(normalizeGroupMember),
     groupRituals: (state.groupRituals ?? []).map(normalizeGroupRitual),
-    books: (state.books ?? []).map(normalizeBook)
+    books: (state.books ?? []).map(normalizeBook),
+    readingLogs: (state.readingLogs ?? []).map(normalizeReadingLog)
   };
 }
 
@@ -477,6 +496,7 @@ export function updateMockBook(book: MockUserBook) {
 
 export function addMockReadingLog(input: {
   userBookId: string;
+  groupId?: string | null;
   unit: CheckInUnit;
   amount: number;
   skipped: boolean;
@@ -485,10 +505,14 @@ export function addMockReadingLog(input: {
 }) {
   const current = readMockState();
   const now = new Date();
-  const group = input.visibility === "groups" ? current.groups[0] : undefined;
+  const group =
+    input.visibility === "groups"
+      ? current.groups.find((item) => item.id === input.groupId) ?? current.groups[0]
+      : undefined;
   const book = current.books.find((item) => item.id === input.userBookId);
   const log: MockReadingLog = {
     id: crypto.randomUUID(),
+    groupId: group?.id ?? null,
     userBookId: input.userBookId,
     loggedForDate: now.toISOString().slice(0, 10),
     unit: input.unit,
@@ -547,7 +571,18 @@ export function addMockReadingLog(input: {
     ...current,
     books,
     readingLogs: [log, ...current.readingLogs],
-    activities: activity ? [activity, ...current.activities] : current.activities
+    activities: activity ? [activity, ...current.activities] : current.activities,
+    groupMembers: group
+      ? current.groupMembers.map((member) =>
+          member.groupId === group.id && member.displayName === (current.profile?.displayName ?? "Reader")
+            ? {
+                ...member,
+                readingStatus: "checked_in" as const,
+                currentBookTitle: book?.title ?? member.currentBookTitle
+              }
+            : member
+        )
+      : current.groupMembers
   };
   writeMockState(nextState);
   return nextState;
