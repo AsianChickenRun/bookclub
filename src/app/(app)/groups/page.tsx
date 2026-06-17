@@ -181,7 +181,14 @@ export default function GroupsPage() {
             Join group
           </button>
         </form>
-        <section className="soft-card p-5 lg:row-span-2">
+        <section className="soft-card overflow-hidden lg:row-span-2">
+          <div className="border-b border-[#ded5c6] bg-[#f2e7d8]/60 px-5 py-4">
+            <p className="eyebrow">Reading room preview</p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              Pick a group, post a thoughtful prompt, then open the room for replies and activity.
+            </p>
+          </div>
+          <div className="p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="eyebrow">Active group</p>
@@ -190,7 +197,7 @@ export default function GroupsPage() {
               </h2>
             </div>
             {activeGroup ? (
-              <span className="rounded-app bg-skysoft px-3 py-1 text-xs font-black text-moss">
+              <span className="status-pill">
                 {activeGroup.role}
               </span>
             ) : null}
@@ -203,7 +210,7 @@ export default function GroupsPage() {
                   className={`rounded-app border px-3 py-2 text-sm font-bold ${
                     activeGroup?.id === group.id
                       ? "border-[#315c48] bg-[#315c48] text-white"
-                      : "border-[#dedbd2] bg-white text-slate-700"
+                      : "border-[#dedbd2] bg-[#fffdf8] text-slate-700"
                   }`}
                   key={group.id}
                   onClick={() => setActiveGroupId(group.id)}
@@ -215,7 +222,7 @@ export default function GroupsPage() {
             </div>
           ) : null}
 
-          <form className="mt-5 grid gap-4 rounded-app border border-[#dedbd2] bg-white p-4" onSubmit={handleDiscussion}>
+          <form className="room-card mt-5 grid gap-4 p-4" onSubmit={handleDiscussion}>
             <h3 className="font-black text-ink">Start a discussion</h3>
             <label className="grid gap-2 text-sm font-bold text-slate-700">
               Prompt
@@ -277,7 +284,7 @@ export default function GroupsPage() {
               </label>
             </div>
             {message ? (
-              <p className="rounded-app border border-[#dedbd2] bg-[#f7f3ea] p-3 text-sm text-slate-700">
+              <p className="note-card p-3 text-sm text-slate-700">
                 {message}
               </p>
             ) : null}
@@ -291,13 +298,13 @@ export default function GroupsPage() {
             <div className="mt-3 grid gap-3">
               {activeActivities.length ? (
                 activeActivities.map((activity) => (
-                  <article className="rounded-app border border-[#dedbd2] bg-white p-4" key={activity.id}>
+                  <article className="note-card p-4" key={activity.id}>
                     <div className="flex flex-wrap items-center gap-2">
                       <h4 className="font-black text-ink">{activity.actorName}</h4>
-                      <span className="rounded-app bg-[#f7f3ea] px-2 py-1 text-xs font-bold text-slate-700">
+                      <span className="warm-pill">
                         {activity.type === "check_in" ? "Check-in" : "Discussion"}
                       </span>
-                      <span className="rounded-app bg-skysoft px-2 py-1 text-xs font-bold text-moss">
+                      <span className="status-pill">
                         {formatSpoilerLabel(activity.spoilerLevel)}
                       </span>
                     </div>
@@ -308,11 +315,12 @@ export default function GroupsPage() {
                   </article>
                 ))
               ) : (
-                <p className="rounded-app border border-[#dedbd2] bg-white p-4 text-slate-700">
+                <p className="note-card p-4 text-slate-700">
                   Group-visible check-ins and discussions will appear here.
                 </p>
               )}
             </div>
+          </div>
           </div>
         </section>
 
@@ -321,13 +329,13 @@ export default function GroupsPage() {
           <div className="mt-4 grid gap-3">
             {state?.groups.length ? (
               state.groups.map((group) => (
-                <article className="rounded-app border border-[#dedbd2] bg-white p-4" key={group.id}>
+                <article className="note-card p-4" key={group.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h3 className="font-black text-ink">{group.name}</h3>
                       <p className="mt-1 text-sm text-slate-700">{group.description}</p>
                     </div>
-                    <span className="rounded-app bg-skysoft px-3 py-1 text-xs font-black text-moss">
+                    <span className="status-pill">
                       {group.role}
                     </span>
                   </div>
@@ -338,7 +346,7 @@ export default function GroupsPage() {
                 </article>
               ))
             ) : (
-              <p className="rounded-app border border-[#dedbd2] bg-white p-4 text-slate-700">
+              <p className="note-card p-4 text-slate-700">
                 No groups yet. Create or join one to unlock the group feed.
               </p>
             )}
@@ -355,20 +363,20 @@ export default function GroupsPage() {
                 const isRevealed = revealedPostIds.has(post.id);
 
                 return (
-                  <article className="rounded-app border border-[#dedbd2] bg-white p-4" key={post.id}>
+                  <article className="note-card p-4" key={post.id}>
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-black text-ink">{post.authorName}</h3>
-                      <span className="rounded-app bg-skysoft px-2 py-1 text-xs font-bold text-moss">
+                      <span className="status-pill">
                         {formatSpoilerLabel(post.spoilerLevel)}
                       </span>
                       {comments.length ? (
-                        <span className="rounded-app bg-[#f7f3ea] px-2 py-1 text-xs font-bold text-slate-700">
+                        <span className="warm-pill">
                           {comments.length} {comments.length === 1 ? "reply" : "replies"}
                         </span>
                       ) : null}
                     </div>
                     {isProtected && !isRevealed ? (
-                      <div className="mt-3 rounded-app border border-[#d8b28d] bg-[#fff7ed] p-4">
+                      <div className="spoiler-panel mt-3 p-4">
                         <p className="text-sm font-bold text-[#7c4a20]">
                           This discussion may contain spoilers.
                         </p>
@@ -405,7 +413,7 @@ export default function GroupsPage() {
                     <div className="mt-4 grid gap-2 border-t border-[#dedbd2] pt-4">
                       {comments.length ? (
                         comments.map((comment) => (
-                          <div className="rounded-app bg-[#f7f3ea] p-3" key={comment.id}>
+                          <div className="room-card p-3" key={comment.id}>
                             <p className="text-xs font-black uppercase text-[#315c48]">
                               {comment.authorName}
                             </p>
@@ -441,7 +449,7 @@ export default function GroupsPage() {
                 );
               })
             ) : (
-              <p className="rounded-app border border-[#dedbd2] bg-white p-4 text-slate-700">
+              <p className="note-card p-4 text-slate-700">
                 No discussions yet.
               </p>
             )}

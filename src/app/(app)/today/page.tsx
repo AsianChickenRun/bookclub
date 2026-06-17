@@ -161,37 +161,41 @@ export default function TodayPage() {
       />
       <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         {currentBook ? (
-          <section className="soft-card p-5">
-            <p className="eyebrow">Current book</p>
-            <h2 className="mt-3 text-2xl font-black text-ink">{currentBook.title}</h2>
-            <p className="mt-2 text-slate-700">
-              {currentBook.author || "Unknown author"} - {currentBook.format} -{" "}
-              {currentBook.goalType}
-            </p>
+          <section className="soft-card overflow-hidden">
+            <div className="border-b border-[#ded5c6] bg-[#f2e7d8]/60 px-5 py-4">
+              <p className="eyebrow">Current book</p>
+              <h2 className="mt-3 text-2xl font-black text-ink">{currentBook.title}</h2>
+              <p className="mt-2 text-slate-700">
+                {currentBook.author || "Unknown author"} - {currentBook.format} -{" "}
+                {currentBook.goalType}
+              </p>
+            </div>
+            <div className="p-5">
             <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+              <div className="metric-card p-3">
                 <dt className="text-xs font-bold text-slate-500">Page</dt>
                 <dd className="mt-1 font-black text-ink">
                   {currentBook.currentPage ?? "?"}
                   {currentBook.totalPages ? ` / ${currentBook.totalPages}` : ""}
                 </dd>
               </div>
-              <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+              <div className="metric-card p-3">
                 <dt className="text-xs font-bold text-slate-500">Chapter</dt>
                 <dd className="mt-1 font-black text-ink">
                   {currentBook.currentChapter ?? "?"}
                   {currentBook.totalChapters ? ` / ${currentBook.totalChapters}` : ""}
                 </dd>
               </div>
-              <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+              <div className="metric-card p-3">
                 <dt className="text-xs font-bold text-slate-500">Minutes</dt>
                 <dd className="mt-1 font-black text-ink">{currentBook.minutesReadTotal}</dd>
               </div>
-              <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+              <div className="metric-card p-3">
                 <dt className="text-xs font-bold text-slate-500">Sessions</dt>
                 <dd className="mt-1 font-black text-ink">{currentBook.sessionsTotal}</dd>
               </div>
             </dl>
+            </div>
           </section>
         ) : (
           <PlaceholderCard
@@ -275,7 +279,7 @@ export default function TodayPage() {
             />
           </label>
           {message ? (
-            <p className="rounded-app border border-[#dedbd2] bg-white p-3 text-sm text-slate-700">
+            <p className="note-card p-3 text-sm text-slate-700">
               {message}
             </p>
           ) : null}
@@ -290,7 +294,7 @@ export default function TodayPage() {
               <p className="eyebrow">Reading momentum</p>
               <h2 className="mt-3 text-2xl font-black text-ink">{momentum.score}/100</h2>
             </div>
-            <span className="rounded-app bg-[#dfece4] px-3 py-1 text-xs font-black text-moss">
+            <span className="status-pill">
               Local score
             </span>
           </div>
@@ -298,21 +302,21 @@ export default function TodayPage() {
             Momentum favors consistency first, then reflection and group-visible updates.
           </p>
           <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+            <div className="metric-card p-3">
               <dt className="text-xs font-bold text-slate-500">Current streak</dt>
               <dd className="mt-1 font-black text-ink">
                 {momentum.streak} {momentum.streak === 1 ? "day" : "days"}
               </dd>
             </div>
-            <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+            <div className="metric-card p-3">
               <dt className="text-xs font-bold text-slate-500">Active days</dt>
               <dd className="mt-1 font-black text-ink">{momentum.activeDaysThisWeek}/7</dd>
             </div>
-            <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+            <div className="metric-card p-3">
               <dt className="text-xs font-bold text-slate-500">Group shares</dt>
               <dd className="mt-1 font-black text-ink">{momentum.groupSharedThisWeek}</dd>
             </div>
-            <div className="rounded-app border border-[#dedbd2] bg-white p-3">
+            <div className="metric-card p-3">
               <dt className="text-xs font-bold text-slate-500">Reflections</dt>
               <dd className="mt-1 font-black text-ink">{momentum.notesThisWeek}</dd>
             </div>
@@ -326,7 +330,7 @@ export default function TodayPage() {
               recentLogs.map((log) => {
                 const book = state?.books.find((item) => item.id === log.userBookId);
                 return (
-                  <article className="rounded-app border border-[#dedbd2] bg-white p-4" key={log.id}>
+                  <article className="note-card p-4" key={log.id}>
                     <h3 className="font-black text-ink">{book?.title ?? "Unknown book"}</h3>
                     <p className="mt-1 text-sm text-slate-700">
                       {log.skipped ? "Skipped today" : `${log.amount} ${log.unit}`} -{" "}
@@ -337,7 +341,7 @@ export default function TodayPage() {
                 );
               })
             ) : (
-              <p className="rounded-app border border-[#dedbd2] bg-white p-4 text-slate-700">
+              <p className="note-card p-4 text-slate-700">
                 No check-ins yet.
               </p>
             )}
@@ -347,15 +351,15 @@ export default function TodayPage() {
         <section className="soft-card p-5">
           <h2 className="text-xl font-black text-ink">Foundation state</h2>
           <dl className="mt-4 grid gap-3">
-            <div className="flex justify-between rounded-app border border-[#dedbd2] bg-white px-4 py-3">
+            <div className="note-card flex justify-between px-4 py-3">
               <dt className="text-sm text-slate-600">Groups</dt>
               <dd className="text-sm font-black text-ink">{groupCount}</dd>
             </div>
-            <div className="flex justify-between rounded-app border border-[#dedbd2] bg-white px-4 py-3">
+            <div className="note-card flex justify-between px-4 py-3">
               <dt className="text-sm text-slate-600">Current books</dt>
               <dd className="text-sm font-black text-ink">{state?.books.length ?? 0}</dd>
             </div>
-            <div className="flex justify-between rounded-app border border-[#dedbd2] bg-white px-4 py-3">
+            <div className="note-card flex justify-between px-4 py-3">
               <dt className="text-sm text-slate-600">Reading logs</dt>
               <dd className="text-sm font-black text-ink">{state?.readingLogs.length ?? 0}</dd>
             </div>
