@@ -55,6 +55,7 @@ Out of scope:
 - Added editable local room rituals so each specific group page has a weekly table prompt and focus note.
 - Added group-scoped local check-ins directly inside the specific room page.
 - Added explicit group targeting for group-visible check-ins on Today.
+- Added a table-prompt handoff so a room ritual can prefill the in-room discussion composer.
 
 ## Acceptance Criteria
 
@@ -65,6 +66,7 @@ Out of scope:
 - Group room allows searching for a book and attaching it to a room discussion without leaving the page.
 - Group room supports local planning readers with display name, status, and optional current book.
 - Group room supports a local weekly ritual with cadence, prompt, and focus note.
+- Group room allows the weekly table prompt to be copied into the discussion composer without leaving the room.
 - Group room supports quiet check-ins scoped to that room.
 - Spoiler-marked discussions are protected until revealed.
 - Build, lint, and typecheck pass.
@@ -106,6 +108,7 @@ UI adjustments:
 - Check-ins this week are counted from group-scoped activity records, not unscoped local logs.
 - The weekly ritual uses `This week at the table` copy with three low-pressure prompts: settle in, leave a page note, and close the week.
 - The table prompt can be edited locally by cadence, prompt, and focus note.
+- The table prompt can be used as the starting point for a room discussion through the existing composer.
 
 ## Local Prototype Boundaries
 
@@ -121,7 +124,13 @@ UI adjustments:
 - A configured key should return attachable catalog results.
 - Browser smoke should cover: create group, open room, add planning reader, search and attach book, start discussion, reveal/hide spoiler thread, reply, refresh, and reopen the same local group URL.
 - Browser smoke should also cover editing the room ritual and confirming it persists after refresh in the same browser.
+- Browser smoke should also cover using the table prompt, confirming it preloads and focuses the discussion composer, protects existing custom drafts, clears stale spoiler/book selections, and posts the resulting thread.
 - Browser smoke should also cover adding a quiet check-in from one room and confirming it does not increment another room's reading-note count.
+
+Future hardening:
+
+- Normalize imported/stale discussion posts, discussion comments, and activity records before Supabase activation.
+- Add repository-level validation that rejects discussion posts for unknown groups before replacing the mock repository with cloud persistence.
 
 ## Room-Scoped Check-In Slice
 

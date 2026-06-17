@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-06-17: Connect Room Rituals To Discussion Creation
+
+Decision: Sprint 6 group rooms should let the weekly table prompt prefill the in-room discussion composer, while protecting existing custom drafts and clearing stale book/spoiler selections.
+
+Reason: The room ritual should not be a passive note beside the actual discussion workflow. A direct handoff makes the specific group page feel like a working reading session while keeping participation optional and low-pressure.
+
+Alternatives considered:
+
+- Leave the ritual as read-only helper copy
+- Create a separate ritual response workflow
+- Wait for scheduled notifications before connecting rituals to discussions
+
+Research support: Sprint 6 UX guidance keeps the room focused on one calm primary action and recommends table-oriented prompts that lead naturally into discussion.
+
+Future review date: Before adding notification-backed rituals or Supabase-backed scheduled prompts.
+
 ## 2026-06-17: Add Room-Scoped Local Check-Ins
 
 Decision: Sprint 6 group rooms may include local check-ins scoped to the specific room through an optional local `groupId` on reading logs.

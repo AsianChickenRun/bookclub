@@ -432,6 +432,20 @@ Docs: 04_Features.md, 08_UI_UX.md
 
 ## Phase 3: Social Reading
 
+### RM-009A: Group Room Data Validation Hardening
+
+Priority: P1
+
+As the product moves from local prototype to cloud persistence, group-room records need validation so imported or stale data cannot create confusing room state.
+
+Acceptance criteria:
+
+- Local import normalizes discussion posts, discussion comments, and activity records.
+- Repository rejects discussion posts for unknown groups.
+- Validation behavior is covered before Supabase-backed group rooms are activated.
+
+Docs: 17_Architecture.md, 23_Data_Persistence.md
+
 ### RM-009: Group Feed
 
 Priority: P0
@@ -458,6 +472,7 @@ Acceptance criteria:
 - User can create discussion posts.
 - User can create discussion posts from a specific group room.
 - User can search for a book from the group room and attach the selected result to the discussion.
+- User can start a group-room discussion from the current weekly table prompt.
 - Users can reply to posts.
 - Replies support short encouragement.
 - Thread structure supports later spoiler controls.

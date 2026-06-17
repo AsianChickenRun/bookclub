@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
@@ -41,6 +41,9 @@ const ritualCadences: { value: MockGroupRitual["cadence"]; label: string }[] = [
   { value: "weekend", label: "Weekend reflection" },
   { value: "custom", label: "Custom rhythm" }
 ];
+
+const defaultDiscussionPrompt =
+  "What moment from your current reading would be good to talk through together?";
 
 type BookSearchResult = {
   id: string;
@@ -83,9 +86,8 @@ export default function GroupRoomPage() {
   const [message, setMessage] = useState("");
   const [revealedPostIds, setRevealedPostIds] = useState<Set<string>>(new Set());
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
-  const [discussionBody, setDiscussionBody] = useState(
-    "What moment from your current reading would be good to talk through together?"
-  );
+  const [discussionBody, setDiscussionBody] = useState(defaultDiscussionPrompt);
+  const [shouldReplaceDiscussionDraft, setShouldReplaceDiscussionDraft] = useState(false);
   const [relatedBookId, setRelatedBookId] = useState("");
   const [spoilerLevel, setSpoilerLevel] = useState<SpoilerLevel>("none");
   const [spoilerPage, setSpoilerPage] = useState("");
@@ -109,6 +111,8 @@ export default function GroupRoomPage() {
   const [checkInAmount, setCheckInAmount] = useState("");
   const [checkInSkipped, setCheckInSkipped] = useState(false);
   const [checkInNote, setCheckInNote] = useState("");
+  const discussionSectionRef = useRef<HTMLElement | null>(null);
+  const discussionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     getRepository().getState().then((nextState) => {
@@ -170,6 +174,35 @@ export default function GroupRoomPage() {
     ).length ?? 0;
   const selectedDiscussionBook =
     state?.books.find((book) => book.id === relatedBookId) ?? currentBook;
+
+  function focusDiscussionComposer() {
+    discussionSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => discussionTextareaRef.current?.focus(), 120);
+  }
+
+  function handleUseRitualPrompt() {
+    const prompt = roomRitual.prompt.trim();
+    const hasCustomDraft =
+      Boolean(discussionBody.trim()) &&
+      discussionBody !== defaultDiscussionPrompt &&
+      discussionBody.trim() !== prompt;
+
+    if (hasCustomDraft && !shouldReplaceDiscussionDraft) {
+      setShouldReplaceDiscussionDraft(true);
+      setMessage("You already have a draft. Choose replace draft to use the table prompt.");
+      focusDiscussionComposer();
+      return;
+    }
+
+    setDiscussionBody(prompt);
+    setRelatedBookId("");
+    setSpoilerLevel("none");
+    setSpoilerPage("");
+    setSpoilerChapter("");
+    setShouldReplaceDiscussionDraft(false);
+    setMessage("Table prompt added. Add your note when you are ready.");
+    focusDiscussionComposer();
+  }
 
   async function handleBookSearch() {
     if (bookSearchQuery.trim().length < 2) {
@@ -343,6 +376,7 @@ export default function GroupRoomPage() {
 
     setState(nextState);
     setDiscussionBody("");
+    setShouldReplaceDiscussionDraft(false);
     setRelatedBookId("");
     setSpoilerLevel("none");
     setSpoilerPage("");
@@ -568,6 +602,13 @@ export default function GroupRoomPage() {
             </div>
             <p className="mt-3 text-sm leading-6 text-slate-700">{roomRitual.prompt}</p>
             <p className="mt-2 text-sm leading-6 text-slate-600">{roomRitual.focusNote}</p>
+            <button
+              className="secondary-button mt-4 justify-self-start"
+              onClick={handleUseRitualPrompt}
+              type="button"
+            >
+              {shouldReplaceDiscussionDraft ? "Replace draft with prompt" : "Start from this prompt"}
+            </button>
           </div>
 
           {showRitualForm ? (
@@ -706,7 +747,7 @@ export default function GroupRoomPage() {
           </div>
         </section>
 
-        <section className="soft-card overflow-hidden">
+        <section className="soft-card overflow-hidden" ref={discussionSectionRef}>
           <div className="border-b border-[#ded5c6] bg-[#fffdf8]/74 px-5 py-4">
             <p className="eyebrow">Discussion table</p>
             <h2 className="mt-2 text-2xl font-black text-ink">Threads in this room</h2>
@@ -736,7 +777,11 @@ export default function GroupRoomPage() {
               Prompt
               <textarea
                 className="min-h-24 rounded-app border border-[#dedbd2] px-3 py-2"
-                onChange={(event) => setDiscussionBody(event.target.value)}
+                onChange={(event) => {
+                  setDiscussionBody(event.target.value);
+                  setShouldReplaceDiscussionDraft(false);
+                }}
+                ref={discussionTextareaRef}
                 value={discussionBody}
               />
             </label>
