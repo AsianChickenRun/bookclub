@@ -16,7 +16,30 @@ const searchModes = [
   { value: "title", label: "Title" },
   { value: "author", label: "Author" },
   { value: "isbn", label: "ISBN" },
-  { value: "subject", label: "Subject" }
+  { value: "subject", label: "Subject" },
+  { value: "publisher", label: "Publisher" },
+  { value: "lccn", label: "LCCN" },
+  { value: "oclc", label: "OCLC" }
+];
+
+const sortOptions = [
+  { value: "relevance", label: "Relevance" },
+  { value: "newest", label: "Newest" }
+];
+
+const filterOptions = [
+  { value: "all", label: "Any edition" },
+  { value: "partial", label: "Preview available" },
+  { value: "full", label: "Full view" },
+  { value: "ebooks", label: "Ebook" },
+  { value: "free-ebooks", label: "Free ebook" }
+];
+
+const languageOptions = [
+  { value: "", label: "Any language" },
+  { value: "en", label: "English" },
+  { value: "es", label: "Spanish" },
+  { value: "fr", label: "French" }
 ];
 
 type BookSearchResult = {
@@ -37,12 +60,27 @@ type BookSearchResult = {
   infoLink: string | null;
 };
 
+type BookSearchPayload = {
+  totalItems?: number;
+  startIndex?: number;
+  maxResults?: number;
+  nextStartIndex?: number | null;
+  hasMore?: boolean;
+  items?: BookSearchResult[];
+  error?: string;
+};
+
 export default function BooksPage() {
   const [state, setState] = useState<MockAppState | null>(null);
   const [searchQuery, setSearchQuery] = useState("Tomorrow, and Tomorrow, and Tomorrow");
   const [searchMode, setSearchMode] = useState("all");
+  const [searchOrderBy, setSearchOrderBy] = useState("relevance");
+  const [searchFilter, setSearchFilter] = useState("all");
+  const [searchLanguage, setSearchLanguage] = useState("");
   const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
   const [searchMessage, setSearchMessage] = useState("");
+  const [searchTotalItems, setSearchTotalItems] = useState(0);
+  const [nextSearchStartIndex, setNextSearchStartIndex] = useState<number | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -62,8 +100,24 @@ export default function BooksPage() {
     return value.trim() ? Number(value) : null;
   }
 
-  async function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function isBookSaved(book: BookSearchResult) {
+    return Boolean(
+      state?.books.some(
+        (item) =>
+          (book.id && item.externalSource === "google_books" && item.externalId === book.id) ||
+          (book.isbn13 && item.isbn13 === book.isbn13) ||
+          (book.isbn10 && item.isbn10 === book.isbn10)
+      )
+    );
+  }
+
+  function mergeSearchResults(current: BookSearchResult[], next: BookSearchResult[]) {
+    const seen = new Set(current.map((book) => book.id));
+    return [...current, ...next.filter((book) => !seen.has(book.id))];
+  }
+
+  async function runSearch(startIndex = 0) {
+    const isLoadingMore = startIndex > 0;
 
     if (searchQuery.trim().length < 2) {
       setSearchMessage("Search needs at least two characters.");
@@ -71,41 +125,54 @@ export default function BooksPage() {
     }
 
     setIsSearching(true);
-    setSearchMessage("Searching the book catalog.");
+    setSearchMessage(isLoadingMore ? "Looking for more catalog results." : "Searching the book catalog.");
 
     try {
       const params = new URLSearchParams({
         q: searchQuery.trim(),
         mode: searchMode,
-        maxResults: "12"
+        orderBy: searchOrderBy,
+        filter: searchFilter,
+        maxResults: "12",
+        startIndex: String(startIndex)
       });
+      if (searchLanguage) params.set("langRestrict", searchLanguage);
       const response = await fetch(`/api/books/search?${params.toString()}`);
-      const payload = (await response.json()) as {
-        items?: BookSearchResult[];
-        error?: string;
-      };
+      const payload = (await response.json()) as BookSearchPayload;
 
       if (!response.ok) {
-        setSearchResults([]);
+        if (!isLoadingMore) setSearchResults([]);
         setSearchMessage(payload.error ?? "Book search is temporarily unavailable.");
         return;
       }
 
-      setSearchResults(payload.items ?? []);
+      const items = payload.items ?? [];
+      const nextResults = isLoadingMore ? mergeSearchResults(searchResults, items) : items;
+      setSearchResults(nextResults);
+      setSearchTotalItems(payload.totalItems ?? 0);
+      setNextSearchStartIndex(payload.nextStartIndex ?? null);
       setSearchMessage(
-        payload.items?.length
+        nextResults.length
           ? "Choose a result to add it to your current reading list."
-          : "No matching books found. Try title, author, or ISBN."
+          : isLoadingMore
+            ? "No more results for this search."
+            : "No match yet. Try author, title, ISBN, or a broader search."
       );
     } catch {
-      setSearchResults([]);
+      if (!isLoadingMore) setSearchResults([]);
       setSearchMessage("Book search is temporarily unavailable.");
     } finally {
       setIsSearching(false);
     }
   }
 
+  async function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await runSearch(0);
+  }
+
   async function addCatalogBook(book: BookSearchResult) {
+    const wasAlreadySaved = isBookSaved(book);
     const nextState = await getRepository().addBook({
       title: book.title,
       author: book.author,
@@ -127,7 +194,11 @@ export default function BooksPage() {
     });
 
     setState(nextState);
-    setMessage(`${book.title} added from the book catalog.`);
+    setMessage(
+      wasAlreadySaved
+        ? `${book.title} is already in your local books. I moved it to the top.`
+        : `${book.title} added from the book catalog.`
+    );
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -201,7 +272,7 @@ export default function BooksPage() {
             <p className="eyebrow">Book catalog</p>
             <h2 className="mt-2 text-xl font-black text-ink">Search Google Books</h2>
             <p className="mt-2 text-sm leading-6 text-slate-700">
-              Search by title, author, subject, or ISBN. Results become local Reading Momentum books when added.
+              Find the right edition, then save it locally to Reading Momentum.
             </p>
           </div>
           <div className="p-5">
@@ -217,7 +288,7 @@ export default function BooksPage() {
               </label>
               <div className="grid gap-4 sm:grid-cols-[0.7fr_0.3fr]">
                 <label className="grid gap-2 text-sm font-bold text-slate-700">
-                  Search depth
+                  Search by
                   <select
                     className="min-h-11 rounded-app border border-[#dedbd2] px-3"
                     onChange={(event) => setSearchMode(event.target.value)}
@@ -234,10 +305,72 @@ export default function BooksPage() {
                   {isSearching ? "Searching" : "Search"}
                 </button>
               </div>
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className="grid gap-2 text-sm font-bold text-slate-700">
+                  Sort
+                  <select
+                    className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                    onChange={(event) => setSearchOrderBy(event.target.value)}
+                    value={searchOrderBy}
+                  >
+                    {sortOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-bold text-slate-700">
+                  Edition
+                  <select
+                    className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                    onChange={(event) => setSearchFilter(event.target.value)}
+                    value={searchFilter}
+                  >
+                    {filterOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-bold text-slate-700">
+                  Language
+                  <select
+                    className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                    onChange={(event) => setSearchLanguage(event.target.value)}
+                    value={searchLanguage}
+                  >
+                    {languageOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
             </form>
 
             {searchMessage ? (
               <p className="note-card mt-4 p-3 text-sm text-slate-700">{searchMessage}</p>
+            ) : null}
+            {searchResults.length ? (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm font-bold text-slate-600">
+                  {searchResults.length} shown
+                  {searchTotalItems ? ` from ${searchTotalItems.toLocaleString()} catalog matches` : ""}
+                </p>
+                {nextSearchStartIndex !== null ? (
+                  <button
+                    className="secondary-button"
+                    disabled={isSearching}
+                    onClick={() => runSearch(nextSearchStartIndex)}
+                    type="button"
+                  >
+                    {isSearching ? "Loading" : "Load more"}
+                  </button>
+                ) : null}
+              </div>
             ) : null}
 
             <div className="mt-5 grid gap-3">
@@ -280,7 +413,7 @@ export default function BooksPage() {
                       onClick={() => addCatalogBook(book)}
                       type="button"
                     >
-                      Add to my books
+                      {isBookSaved(book) ? "Already in my books" : "Add to my books"}
                     </button>
                   </div>
                 </article>

@@ -452,6 +452,44 @@ export function addMockBook(input: {
 }) {
   const current = readMockState();
   const now = new Date().toISOString();
+  const existingBook = current.books.find((book) => {
+    const sameExternalId =
+      input.externalSource === "google_books" &&
+      Boolean(input.externalId) &&
+      book.externalSource === "google_books" &&
+      book.externalId === input.externalId;
+    const sameIsbn13 = Boolean(input.isbn13) && book.isbn13 === input.isbn13;
+    const sameIsbn10 = Boolean(input.isbn10) && book.isbn10 === input.isbn10;
+
+    return sameExternalId || sameIsbn13 || sameIsbn10;
+  });
+
+  if (existingBook) {
+    const updatedBook: MockUserBook = {
+      ...existingBook,
+      externalSource:
+        existingBook.externalSource === "manual" && input.externalSource === "google_books"
+          ? "google_books"
+          : existingBook.externalSource,
+      externalId: existingBook.externalId ?? input.externalId ?? null,
+      publisher: existingBook.publisher ?? input.publisher ?? null,
+      publishedDate: existingBook.publishedDate ?? input.publishedDate ?? null,
+      description: existingBook.description || input.description || "",
+      categories: existingBook.categories.length ? existingBook.categories : input.categories ?? [],
+      coverImageUrl: existingBook.coverImageUrl ?? input.coverImageUrl ?? null,
+      isbn10: existingBook.isbn10 ?? input.isbn10 ?? null,
+      isbn13: existingBook.isbn13 ?? input.isbn13 ?? null,
+      totalPages: existingBook.totalPages ?? input.totalPages ?? null,
+      updatedAt: now
+    };
+    const nextState = {
+      ...current,
+      books: [updatedBook, ...current.books.filter((book) => book.id !== existingBook.id)]
+    };
+    writeMockState(nextState);
+    return nextState;
+  }
+
   const book: MockUserBook = {
     id: crypto.randomUUID(),
     bookId: input.externalId ?? crypto.randomUUID(),

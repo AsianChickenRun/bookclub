@@ -30,7 +30,9 @@ type GoogleBooksResponse = {
   items?: GoogleVolume[];
 };
 
-const searchModes = new Set(["all", "title", "author", "isbn", "subject"]);
+const searchModes = new Set(["all", "title", "author", "isbn", "subject", "publisher", "lccn", "oclc"]);
+const orderByOptions = new Set(["relevance", "newest"]);
+const filterOptions = new Set(["all", "partial", "full", "free-ebooks", "paid-ebooks", "ebooks"]);
 
 function buildQuery(query: string, mode: string) {
   const normalized = query.trim();
@@ -39,8 +41,23 @@ function buildQuery(query: string, mode: string) {
   if (mode === "author") return `inauthor:${normalized}`;
   if (mode === "isbn") return `isbn:${normalized.replaceAll("-", "").replaceAll(" ", "")}`;
   if (mode === "subject") return `subject:${normalized}`;
+  if (mode === "publisher") return `inpublisher:${normalized}`;
+  if (mode === "lccn") return `lccn:${normalized}`;
+  if (mode === "oclc") return `oclc:${normalized}`;
 
   return normalized;
+}
+
+function boundedNumber(value: string | null, fallback: number, min: number, max: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(Math.floor(parsed), min), max);
+}
+
+function normalizedLanguage(value: string | null) {
+  if (!value) return "";
+  const normalized = value.trim().toLowerCase();
+  return /^[a-z]{2}$/.test(normalized) ? normalized : "";
 }
 
 function normalizeVolume(volume: GoogleVolume) {
@@ -75,7 +92,13 @@ export async function GET(request: Request) {
   const query = searchParams.get("q")?.trim() ?? "";
   const requestedMode = searchParams.get("mode") ?? "all";
   const mode = searchModes.has(requestedMode) ? requestedMode : "all";
-  const maxResults = Math.min(Math.max(Number(searchParams.get("maxResults")) || 12, 1), 40);
+  const requestedOrderBy = searchParams.get("orderBy") ?? "relevance";
+  const orderBy = orderByOptions.has(requestedOrderBy) ? requestedOrderBy : "relevance";
+  const requestedFilter = searchParams.get("filter") ?? "all";
+  const filter = filterOptions.has(requestedFilter) ? requestedFilter : "all";
+  const langRestrict = normalizedLanguage(searchParams.get("langRestrict"));
+  const maxResults = boundedNumber(searchParams.get("maxResults"), 12, 1, 40);
+  const startIndex = boundedNumber(searchParams.get("startIndex"), 0, 0, 960);
   const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
 
   if (!apiKey) {
@@ -95,9 +118,13 @@ export async function GET(request: Request) {
   const url = new URL("https://www.googleapis.com/books/v1/volumes");
   url.searchParams.set("q", buildQuery(query, mode));
   url.searchParams.set("maxResults", String(maxResults));
+  url.searchParams.set("startIndex", String(startIndex));
+  url.searchParams.set("orderBy", orderBy);
   url.searchParams.set("printType", "books");
   url.searchParams.set("projection", "lite");
   url.searchParams.set("key", apiKey);
+  if (filter !== "all") url.searchParams.set("filter", filter);
+  if (langRestrict) url.searchParams.set("langRestrict", langRestrict);
 
   const response = await fetch(url, {
     headers: {
@@ -116,9 +143,17 @@ export async function GET(request: Request) {
   }
 
   const payload = (await response.json()) as GoogleBooksResponse;
+  const items = (payload.items ?? []).map(normalizeVolume);
+  const totalItems = payload.totalItems ?? 0;
+  const nextStartIndex = startIndex + items.length;
+  const hasMore = items.length > 0 && nextStartIndex < totalItems;
 
   return NextResponse.json({
-    totalItems: payload.totalItems ?? 0,
-    items: (payload.items ?? []).map(normalizeVolume)
+    totalItems,
+    startIndex,
+    maxResults,
+    nextStartIndex: hasMore ? nextStartIndex : null,
+    hasMore,
+    items
   });
 }

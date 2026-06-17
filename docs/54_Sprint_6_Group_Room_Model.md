@@ -50,6 +50,7 @@ Out of scope:
 - Added a lightweight local room roster derived from local profile and room activity.
 - Added a session prompt card to make the group page feel more like an active reading session.
 - Added Google Books catalog search inside the room discussion composer so users can find, save, and attach a book without leaving the room.
+- Added compact group-room catalog pagination and sort support for deeper book attachment.
 - Added local room members so the group session can show planning readers before real account-backed membership is connected.
 - Moved book search and planning-reader creation behind secondary controls to keep the room calmer and more reading-first.
 - Added editable local room rituals so each specific group page has a weekly table prompt and focus note.
@@ -64,6 +65,7 @@ Out of scope:
 - Group room shows session context, stats, discussions, replies, and activity.
 - Group room allows starting a new discussion without leaving the specific group page.
 - Group room allows searching for a book and attaching it to a room discussion without leaving the page.
+- Group room book search can load more catalog results while staying secondary to discussion creation.
 - Group room supports local planning readers with display name, status, and optional current book.
 - Group room supports a local weekly ritual with cadence, prompt, and focus note.
 - Group room allows the weekly table prompt to be copied into the discussion composer without leaving the room.

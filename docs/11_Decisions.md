@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-06-17: Deepen Google Books Search Without Moving App Data To Google
+
+Decision: Sprint 6 book search may support pagination, sort, edition/language refinements, and richer fielded catalog searches while saving only selected results into Reading Momentum local state.
+
+Reason: Users need enough catalog depth to pick the right edition and attach useful metadata to group-room discussions. Google Books remains an external public catalog, not the source of truth for progress, groups, discussions, or accountability state.
+
+Alternatives considered:
+
+- Keep only the first page of catalog results
+- Treat Google Books as the app's book database
+- Wait for Supabase before improving search depth
+
+Research support: Google Books supports `startIndex`, `maxResults`, `orderBy`, `filter`, `langRestrict`, and fielded query keywords such as `inpublisher`, `lccn`, and `oclc` for public volume search.
+
+Future review date: Before production launch, after hosted key restriction and browser smoke coverage.
+
 ## 2026-06-17: Connect Room Rituals To Discussion Creation
 
 Decision: Sprint 6 group rooms should let the weekly table prompt prefill the in-room discussion composer, while protecting existing custom drafts and clearing stale book/spoiler selections.

@@ -353,7 +353,11 @@ As a user, I want to add a current book so I can track what I am reading.
 Acceptance criteria:
 
 - User can search an external book catalog by title, author, subject, or ISBN.
+- User can search by deeper catalog fields such as publisher, LCCN, or OCLC when needed.
+- User can refine catalog results by sort, edition availability, and language.
+- User can load more catalog results without replacing already saved local books.
 - User can add a searched book into their current reading list.
+- Adding an already saved catalog result reuses the existing local book instead of creating a duplicate.
 - Saved searched books preserve useful metadata such as source ID, author, publisher, published date, page count, categories, ISBN, cover image URL, and description when available.
 - User can still enter title, author, format, genre, and start date manually.
 - User can choose a goal type: pages, chapters, minutes, or sessions.

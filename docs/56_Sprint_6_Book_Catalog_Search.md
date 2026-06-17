@@ -1,7 +1,7 @@
 # Sprint 6 Mini-Sprint: Book Catalog Search
 
 Status: Implemented for local working model  
-Version: 1.0  
+Version: 1.1  
 Owner: Product Manager  
 Date: 2026-06-17
 
@@ -40,10 +40,16 @@ Google Books provides:
 - Added `GOOGLE_BOOKS_API_KEY` to environment configuration.
 - Added `/api/books/search` server route.
 - Added search by all fields, title, author, ISBN, and subject.
+- Added deeper search modes for publisher, LCCN, and OCLC.
+- Added catalog pagination through `Load more`.
+- Added compact sort, edition/filter, and language refinements on the Books page.
+- Added compact sort and `Load more` support inside group-room book search.
 - Added result cards with cover treatment, metadata, description, categories, and ISBN.
 - Added one-click `Add to my books` behavior.
+- Added duplicate-save protection so matching Google volume IDs or ISBNs reuse the existing local book.
 - Extended local book records with catalog metadata.
 - Added compatibility normalization for older local books and imported backups.
+- Added direct book search entry points from group discussion creation.
 
 ## Security Notes
 
@@ -58,10 +64,11 @@ Google Books provides:
 - Typecheck passed.
 - Production build passed.
 - Direct Google Books request with the configured key returned matching book results.
+- API search returns pagination metadata: `totalItems`, `startIndex`, `maxResults`, `hasMore`, and `nextStartIndex`.
 
 ## Remaining Work
 
 - Add production environment variable in Vercel.
 - Restrict the Google Books key by API and allowed origins/referrers.
-- Add direct book search entry points from group discussion creation.
 - Use book metadata in group-room session cards and spoiler context.
+- Add browser smoke coverage for search refinements, load-more pagination, and duplicate-save prevention.

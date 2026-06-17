@@ -26,7 +26,13 @@ const bookSearchModes = [
   { value: "title", label: "Title" },
   { value: "author", label: "Author" },
   { value: "isbn", label: "ISBN" },
-  { value: "subject", label: "Subject" }
+  { value: "subject", label: "Subject" },
+  { value: "publisher", label: "Publisher" }
+];
+
+const bookSearchSortOptions = [
+  { value: "relevance", label: "Relevance" },
+  { value: "newest", label: "Newest" }
 ];
 
 const memberStatuses: { value: MockGroupMember["readingStatus"]; label: string }[] = [
@@ -57,6 +63,13 @@ type BookSearchResult = {
   thumbnail: string | null;
   isbn10: string | null;
   isbn13: string | null;
+};
+
+type BookSearchPayload = {
+  totalItems?: number;
+  nextStartIndex?: number | null;
+  items?: BookSearchResult[];
+  error?: string;
 };
 
 function formatSpoilerLabel(level: SpoilerLevel) {
@@ -94,8 +107,11 @@ export default function GroupRoomPage() {
   const [spoilerChapter, setSpoilerChapter] = useState("");
   const [bookSearchQuery, setBookSearchQuery] = useState("");
   const [bookSearchMode, setBookSearchMode] = useState("all");
+  const [bookSearchOrderBy, setBookSearchOrderBy] = useState("relevance");
   const [bookSearchResults, setBookSearchResults] = useState<BookSearchResult[]>([]);
   const [bookSearchMessage, setBookSearchMessage] = useState("");
+  const [bookSearchTotalItems, setBookSearchTotalItems] = useState(0);
+  const [nextBookSearchStartIndex, setNextBookSearchStartIndex] = useState<number | null>(null);
   const [isBookSearching, setIsBookSearching] = useState(false);
   const [showBookSearch, setShowBookSearch] = useState(false);
   const [memberName, setMemberName] = useState("");
@@ -204,41 +220,55 @@ export default function GroupRoomPage() {
     focusDiscussionComposer();
   }
 
-  async function handleBookSearch() {
+  function mergeBookSearchResults(current: BookSearchResult[], next: BookSearchResult[]) {
+    const seen = new Set(current.map((book) => book.id));
+    return [...current, ...next.filter((book) => !seen.has(book.id))];
+  }
+
+  async function handleBookSearch(startIndex = 0) {
+    const isLoadingMore = startIndex > 0;
+
     if (bookSearchQuery.trim().length < 2) {
       setBookSearchMessage("Search needs at least two characters.");
       return;
     }
 
     setIsBookSearching(true);
-    setBookSearchMessage("Searching the book catalog.");
+    setBookSearchMessage(isLoadingMore ? "Looking for more room book results." : "Searching the book catalog.");
 
     try {
       const params = new URLSearchParams({
         q: bookSearchQuery.trim(),
         mode: bookSearchMode,
-        maxResults: "6"
+        orderBy: bookSearchOrderBy,
+        maxResults: "6",
+        startIndex: String(startIndex)
       });
       const response = await fetch(`/api/books/search?${params.toString()}`);
-      const payload = (await response.json()) as {
-        items?: BookSearchResult[];
-        error?: string;
-      };
+      const payload = (await response.json()) as BookSearchPayload;
 
       if (!response.ok) {
-        setBookSearchResults([]);
+        if (!isLoadingMore) setBookSearchResults([]);
         setBookSearchMessage(payload.error ?? "Book search is temporarily unavailable.");
         return;
       }
 
-      setBookSearchResults(payload.items ?? []);
+      const items = payload.items ?? [];
+      const nextResults = isLoadingMore
+        ? mergeBookSearchResults(bookSearchResults, items)
+        : items;
+      setBookSearchResults(nextResults);
+      setBookSearchTotalItems(payload.totalItems ?? 0);
+      setNextBookSearchStartIndex(payload.nextStartIndex ?? null);
       setBookSearchMessage(
-        payload.items?.length
+        nextResults.length
           ? "Attach a result to this room discussion."
-          : "No matching books found. Try title, author, or ISBN."
+          : isLoadingMore
+            ? "No more room book results."
+            : "No match yet. Try title, author, ISBN, or a broader search."
       );
     } catch {
-      setBookSearchResults([]);
+      if (!isLoadingMore) setBookSearchResults([]);
       setBookSearchMessage("Book search is temporarily unavailable.");
     } finally {
       setIsBookSearching(false);
@@ -869,7 +899,7 @@ export default function GroupRoomPage() {
                       value={bookSearchQuery}
                     />
                   </label>
-                  <div className="grid gap-3 sm:grid-cols-[0.7fr_0.3fr]">
+                  <div className="grid gap-3 sm:grid-cols-[0.45fr_0.35fr_0.2fr]">
                     <label className="grid gap-2 text-sm font-bold text-slate-700">
                       Search by
                       <select
@@ -884,10 +914,24 @@ export default function GroupRoomPage() {
                         ))}
                       </select>
                     </label>
+                    <label className="grid gap-2 text-sm font-bold text-slate-700">
+                      Sort
+                      <select
+                        className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                        onChange={(event) => setBookSearchOrderBy(event.target.value)}
+                        value={bookSearchOrderBy}
+                      >
+                        {bookSearchSortOptions.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                     <button
                       className="secondary-button self-end"
                       disabled={isBookSearching}
-                      onClick={handleBookSearch}
+                      onClick={() => handleBookSearch(0)}
                       type="button"
                     >
                       {isBookSearching ? "Searching" : "Search"}
@@ -899,6 +943,24 @@ export default function GroupRoomPage() {
                 ) : null}
                 {bookSearchResults.length ? (
                   <div className="grid gap-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-sm font-bold text-slate-600">
+                        {bookSearchResults.length} shown
+                        {bookSearchTotalItems
+                          ? ` from ${bookSearchTotalItems.toLocaleString()} matches`
+                          : ""}
+                      </p>
+                      {nextBookSearchStartIndex !== null ? (
+                        <button
+                          className="secondary-button"
+                          disabled={isBookSearching}
+                          onClick={() => handleBookSearch(nextBookSearchStartIndex)}
+                          type="button"
+                        >
+                          {isBookSearching ? "Loading" : "Load more"}
+                        </button>
+                      ) : null}
+                    </div>
                     {bookSearchResults.map((book) => (
                       <article className="room-card grid gap-3 p-3 sm:grid-cols-[3.5rem_1fr]" key={book.id}>
                         <div
@@ -925,7 +987,7 @@ export default function GroupRoomPage() {
                             onClick={() => attachCatalogBook(book)}
                             type="button"
                           >
-                            Attach to discussion
+                            Attach book
                           </button>
                         </div>
                       </article>
