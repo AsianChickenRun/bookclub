@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-06-17: Make Specific Group Rooms Actionable
+
+Decision: Sprint 6 group rooms should support starting discussions directly inside `/groups/[groupId]`, with local roster and session-prompt depth, before real-time membership or Supabase persistence is introduced.
+
+Reason: The user goal is a working model with more depth on the specific group page. A read-only room does not satisfy that goal; users need to start and continue a room session without returning to the general Groups page.
+
+Alternatives considered:
+
+- Keep discussion creation only on `/groups`
+- Wait for Supabase-backed groups before improving the room page
+- Add realtime or notifications before the local room model is coherent
+
+Research support: Product docs prioritize small private groups, calm social accountability, spoiler-safe discussion, and working local prototypes while persistence setup remains gated.
+
+Future review date: After Sprint 6 review and before Supabase-backed group-room migration.
+
 ## 2026-06-17: Use Google Books As External Catalog, Not User Database
 
 Decision: Reading Momentum may use Google Books API for public book discovery and metadata enrichment, while app-owned user data remains in Reading Momentum persistence.

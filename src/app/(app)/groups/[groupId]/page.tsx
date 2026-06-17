@@ -10,6 +10,12 @@ import {
   type SpoilerLevel
 } from "@/lib/persistence/repository";
 
+const spoilerLevels: { value: SpoilerLevel; label: string }[] = [
+  { value: "none", label: "No spoilers" },
+  { value: "progress_locked", label: "Progress locked" },
+  { value: "explicit", label: "Explicit spoiler" }
+];
+
 function formatSpoilerLabel(level: SpoilerLevel) {
   if (level === "progress_locked") return "Progress locked";
   if (level === "explicit") return "Explicit spoiler";
@@ -37,6 +43,13 @@ export default function GroupRoomPage() {
   const [message, setMessage] = useState("");
   const [revealedPostIds, setRevealedPostIds] = useState<Set<string>>(new Set());
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [discussionBody, setDiscussionBody] = useState(
+    "What moment from your current reading would be good to talk through together?"
+  );
+  const [relatedBookId, setRelatedBookId] = useState("");
+  const [spoilerLevel, setSpoilerLevel] = useState<SpoilerLevel>("none");
+  const [spoilerPage, setSpoilerPage] = useState("");
+  const [spoilerChapter, setSpoilerChapter] = useState("");
 
   useEffect(() => {
     getRepository().getState().then(setState);
@@ -52,6 +65,23 @@ export default function GroupRoomPage() {
     [groupId, state]
   );
   const currentBook = state ? getRepository().getMostRecentBook(state) : undefined;
+  const memberRoster = useMemo(() => {
+    if (!state) return [];
+
+    const names = new Set<string>();
+    names.add(state.profile?.displayName ?? "You");
+
+    activities.forEach((activity) => names.add(activity.actorName));
+    posts.forEach((post) => names.add(post.authorName));
+    state.discussionComments
+      .filter((comment) => posts.some((post) => post.id === comment.postId))
+      .forEach((comment) => names.add(comment.authorName));
+
+    return Array.from(names).slice(0, 6);
+  }, [activities, posts, state]);
+  const sessionPrompt = currentBook
+    ? `What changed in your thinking while reading ${currentBook.title}?`
+    : "What would make this week's reading feel easier to return to?";
   const lastSeven = recentDateKeys(7);
   const groupCheckIns =
     state?.readingLogs.filter(
@@ -61,6 +91,32 @@ export default function GroupRoomPage() {
     state?.discussionComments.filter((comment) =>
       posts.some((post) => post.id === comment.postId)
     ).length ?? 0;
+
+  async function handleDiscussion(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!discussionBody.trim()) {
+      setMessage("Add a discussion prompt before posting.");
+      return;
+    }
+
+    const nextState = await getRepository().addDiscussionPost({
+      groupId,
+      body: discussionBody.trim(),
+      relatedBookId: relatedBookId || currentBook?.id || null,
+      spoilerLevel,
+      spoilerPage: spoilerPage.trim() ? Number(spoilerPage) : null,
+      spoilerChapter: spoilerChapter.trim() ? Number(spoilerChapter) : null
+    });
+
+    setState(nextState);
+    setDiscussionBody("");
+    setRelatedBookId("");
+    setSpoilerLevel("none");
+    setSpoilerPage("");
+    setSpoilerChapter("");
+    setMessage("Discussion started in this room.");
+  }
 
   async function handleReply(event: FormEvent<HTMLFormElement>, postId: string) {
     event.preventDefault();
@@ -142,6 +198,15 @@ export default function GroupRoomPage() {
                   ? `Use this room to check in, discuss, and keep spoilers clear around ${currentBook.author || "this book"}.`
                   : "Add a current book so the room can center around real reading progress."}
               </p>
+              {currentBook?.categories.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {currentBook.categories.slice(0, 2).map((category) => (
+                    <span className="warm-pill" key={category}>
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <span className="status-pill">
               {group.role}
@@ -176,6 +241,25 @@ export default function GroupRoomPage() {
             </ul>
           </div>
 
+          <div className="room-card mt-4 p-4">
+            <p className="text-sm font-black text-ink">Session prompt</p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">{sessionPrompt}</p>
+          </div>
+
+          <div className="mt-6">
+            <p className="text-sm font-black text-ink">Local room roster</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {memberRoster.map((name) => (
+                <span className="status-pill" key={name}>
+                  {name}
+                </span>
+              ))}
+              {memberRoster.length < 2 ? (
+                <span className="warm-pill">Invite friends with {group.inviteCode}</span>
+              ) : null}
+            </div>
+          </div>
+
           <div className="mt-5 flex flex-wrap gap-3">
             <Link className="primary-button" href="/today">
               Log a check-in
@@ -205,6 +289,79 @@ export default function GroupRoomPage() {
               </p>
             ) : null}
           </div>
+
+          <form className="room-card mt-5 grid gap-4 p-4" onSubmit={handleDiscussion}>
+            <div>
+              <h3 className="font-black text-ink">Start a room discussion</h3>
+              <p className="mt-1 text-sm leading-6 text-slate-700">
+                Post a focused prompt from inside this room. Spoiler labels stay visible before anyone opens the thread.
+              </p>
+            </div>
+            <label className="grid gap-2 text-sm font-bold text-slate-700">
+              Prompt
+              <textarea
+                className="min-h-24 rounded-app border border-[#dedbd2] px-3 py-2"
+                onChange={(event) => setDiscussionBody(event.target.value)}
+                value={discussionBody}
+              />
+            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Related book
+                <select
+                  className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                  onChange={(event) => setRelatedBookId(event.target.value)}
+                  value={relatedBookId}
+                >
+                  <option value="">Use current room book</option>
+                  {state.books.map((book) => (
+                    <option key={book.id} value={book.id}>
+                      {book.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Spoiler level
+                <select
+                  className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                  onChange={(event) => setSpoilerLevel(event.target.value as SpoilerLevel)}
+                  value={spoilerLevel}
+                >
+                  {spoilerLevels.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Spoiler page
+                <input
+                  className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                  min="0"
+                  onChange={(event) => setSpoilerPage(event.target.value)}
+                  type="number"
+                  value={spoilerPage}
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Spoiler chapter
+                <input
+                  className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                  min="0"
+                  onChange={(event) => setSpoilerChapter(event.target.value)}
+                  type="number"
+                  value={spoilerChapter}
+                />
+              </label>
+            </div>
+            <button className="primary-button justify-self-start" type="submit">
+              Start discussion
+            </button>
+          </form>
 
           <div className="mt-5 grid gap-4">
             {posts.length ? (
@@ -306,11 +463,8 @@ export default function GroupRoomPage() {
               <div className="room-card p-5">
                 <h3 className="font-black text-ink">No threads yet</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-700">
-                  Start the first discussion from the Groups page, then return here for a deeper room view.
+                  Start the first discussion above so this room has a focused place for replies.
                 </p>
-                <Link className="secondary-button mt-4" href="/groups">
-                  Start a discussion
-                </Link>
               </div>
             )}
           </div>

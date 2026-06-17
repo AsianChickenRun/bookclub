@@ -450,9 +450,11 @@ As a group member, I want to post and reply to reading discussions so reading fe
 Acceptance criteria:
 
 - User can create discussion posts.
+- User can create discussion posts from a specific group room.
 - Users can reply to posts.
 - Replies support short encouragement.
 - Thread structure supports later spoiler controls.
+- Discussion creation supports spoiler labels and optional progress locations.
 
 Docs: 04_Features.md
 
