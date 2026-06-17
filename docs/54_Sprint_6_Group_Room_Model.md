@@ -52,6 +52,7 @@ Out of scope:
 - Added Google Books catalog search inside the room discussion composer so users can find, save, and attach a book without leaving the room.
 - Added local room members so the group session can show planning readers before real account-backed membership is connected.
 - Moved book search and planning-reader creation behind secondary controls to keep the room calmer and more reading-first.
+- Added editable local room rituals so each specific group page has a weekly table prompt and focus note.
 
 ## Acceptance Criteria
 
@@ -61,6 +62,7 @@ Out of scope:
 - Group room allows starting a new discussion without leaving the specific group page.
 - Group room allows searching for a book and attaching it to a room discussion without leaving the page.
 - Group room supports local planning readers with display name, status, and optional current book.
+- Group room supports a local weekly ritual with cadence, prompt, and focus note.
 - Spoiler-marked discussions are protected until revealed.
 - Build, lint, and typecheck pass.
 - Vercel deployment remains reachable after sync.
@@ -69,10 +71,10 @@ Out of scope:
 
 After this page lands, the next useful group improvements are:
 
-1. Add editable or scheduled weekly room rituals.
-2. Add member-specific reading progress once real membership exists.
-3. Move group room data to Supabase when Sprint 5 access gates are met.
-4. Add direct group invite/member management after persistence is active.
+1. Add member-specific reading progress once real membership exists.
+2. Move group room data to Supabase when Sprint 5 access gates are met.
+3. Add direct group invite/member management after persistence is active.
+4. Add notifications only after persistence and membership are real.
 
 ## Group Room Depth Update
 
@@ -99,6 +101,8 @@ UI adjustments:
 - Room language was softened from dashboard wording toward reading-room wording.
 - Invalid nested form risk in the room composer was removed.
 - Check-ins this week are counted from group-scoped activity records, not unscoped local logs.
+- The weekly ritual uses `This week at the table` copy with three low-pressure prompts: settle in, leave a page note, and close the week.
+- The table prompt can be edited locally by cadence, prompt, and focus note.
 
 ## Local Prototype Boundaries
 
@@ -112,6 +116,34 @@ UI adjustments:
 - Missing `GOOGLE_BOOKS_API_KEY` should fail gracefully in book search areas.
 - A configured key should return attachable catalog results.
 - Browser smoke should cover: create group, open room, add planning reader, search and attach book, start discussion, reveal/hide spoiler thread, reply, refresh, and reopen the same local group URL.
+- Browser smoke should also cover editing the room ritual and confirming it persists after refresh in the same browser.
+
+## Weekly Room Ritual Slice
+
+Status: Implemented for local working model.
+
+Purpose: make the specific group page feel more like a persistent reading room without adding pressure, notifications, or gamification.
+
+Implemented:
+
+- Added local group ritual records.
+- New created or joined groups receive a default Thursday discussion ritual.
+- Existing local backups normalize safely when no ritual data exists.
+- The group room shows `This week at the table`.
+- The ritual includes one quiet prompt and one focus note.
+- Users can edit cadence, prompt, and focus note inside the specific group page.
+
+Copy direction:
+
+- `This week at the table`
+- `A small rhythm for reading together. Join anywhere; quiet weeks still count.`
+- `Share one line, question, or moment worth returning to.`
+
+Boundaries:
+
+- The ritual is local-only.
+- The ritual does not schedule notifications.
+- The ritual does not imply completion, streaks, or required participation.
 
 ## Book Catalog Mini-Sprint
 

@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-06-17: Add Local Weekly Room Rituals
+
+Decision: Sprint 6 group rooms may include editable local weekly rituals with cadence, prompt, and focus note, using calm table-oriented copy.
+
+Reason: The specific group page needs more depth than stats and threads. A lightweight ritual gives the room a shared rhythm while preserving the product principle that reading should feel low-pressure and optional.
+
+Alternatives considered:
+
+- Add notification scheduling before persistence
+- Add streak-like ritual completion
+- Leave the room prompt as static copy only
+
+Research support: UX docs recommend Monday/Thursday rituals but warn against guilt-based reminders, streak pressure, and social-media energy. The design language says current reading should remain primary and only one thing should demand attention.
+
+Future review date: Before notification or Supabase-backed ritual scheduling.
+
 ## 2026-06-17: Use Local Planning Readers For Group Room Depth
 
 Decision: Sprint 6 may store local planning-reader records for a group room, including display name, reading status, and optional current book, while real account-backed membership remains deferred to Supabase persistence.

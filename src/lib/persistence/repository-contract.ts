@@ -3,6 +3,7 @@ import type {
   AddDiscussionPostInput,
   AddGroupMemberInput,
   AddReadingLogInput,
+  SaveGroupRitualInput,
   ReadingMomentumRepository
 } from "./repository";
 import type { MockAppState, MockProfile } from "@/lib/mock-app-state";
@@ -18,6 +19,7 @@ type RepositoryContract = {
   createGroup(name: string, description: string): Promise<MockAppState>;
   joinGroup(inviteCode: string): Promise<MockAppState>;
   addGroupMember(input: AddGroupMemberInput): Promise<MockAppState>;
+  saveGroupRitual(input: SaveGroupRitualInput): Promise<MockAppState>;
   addBook(input: AddBookInput): Promise<MockAppState>;
   addReadingLog(input: AddReadingLogInput): Promise<MockAppState>;
   addDiscussionPost(input: AddDiscussionPostInput): Promise<MockAppState>;

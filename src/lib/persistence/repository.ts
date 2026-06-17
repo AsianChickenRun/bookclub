@@ -10,6 +10,7 @@ import {
   joinMockGroup,
   normalizeMockState,
   readMockState,
+  saveMockGroupRitual,
   saveMockProfile,
   signInMockUser,
   writeMockState
@@ -18,6 +19,7 @@ import type {
   CheckInUnit,
   CheckInVisibility,
   MockGroupMember,
+  MockGroupRitual,
   MockAppState,
   MockProfile,
   ReadingFormat,
@@ -31,6 +33,7 @@ export type {
   CheckInVisibility,
   MockAppState,
   MockGroupMember,
+  MockGroupRitual,
   MockProfile,
   ReadingFormat,
   ReadingGoalType,
@@ -84,6 +87,13 @@ export type AddGroupMemberInput = {
   currentBookTitle?: string | null;
 };
 
+export type SaveGroupRitualInput = {
+  groupId: string;
+  cadence: MockGroupRitual["cadence"];
+  prompt: string;
+  focusNote: string;
+};
+
 export type ReadingMomentumRepository = {
   mode: "local" | "supabase_pending";
   getState(): Promise<MockAppState>;
@@ -95,6 +105,7 @@ export type ReadingMomentumRepository = {
   createGroup(name: string, description: string): Promise<MockAppState>;
   joinGroup(inviteCode: string): Promise<MockAppState>;
   addGroupMember(input: AddGroupMemberInput): Promise<MockAppState>;
+  saveGroupRitual(input: SaveGroupRitualInput): Promise<MockAppState>;
   addBook(input: AddBookInput): Promise<MockAppState>;
   addReadingLog(input: AddReadingLogInput): Promise<MockAppState>;
   addDiscussionPost(input: AddDiscussionPostInput): Promise<MockAppState>;
@@ -134,6 +145,9 @@ function createLocalRepository(): ReadingMomentumRepository {
     },
     async addGroupMember(input) {
       return addMockGroupMember(input);
+    },
+    async saveGroupRitual(input) {
+      return saveMockGroupRitual(input);
     },
     async addBook(input) {
       return addMockBook(input);

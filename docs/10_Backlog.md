@@ -420,6 +420,8 @@ Acceptance criteria:
 
 - Monday check-in prompt is available to users.
 - Thursday discussion prompt is available to groups.
+- Local working model supports an editable room ritual with cadence, prompt, and focus note.
+- Ritual copy avoids pressure words such as goal, streak, due, complete, behind, or catch up.
 - Weekend recap or optional voting placeholder can be enabled later.
 - Ritual language is supportive and not guilt-based.
 

@@ -28,6 +28,15 @@ export type MockGroupMember = {
   joinedAt: string;
 };
 
+export type MockGroupRitual = {
+  id: string;
+  groupId: string;
+  cadence: "monday" | "thursday" | "weekend" | "custom";
+  prompt: string;
+  focusNote: string;
+  updatedAt: string;
+};
+
 export type ReadingFormat = "print" | "ebook" | "audiobook" | "mixed";
 
 export type ReadingGoalType = "pages" | "chapters" | "minutes" | "sessions";
@@ -122,6 +131,7 @@ export type MockAppState = {
   profile: MockProfile | null;
   groups: MockGroup[];
   groupMembers: MockGroupMember[];
+  groupRituals: MockGroupRitual[];
   books: MockUserBook[];
   readingLogs: MockReadingLog[];
   activities: MockActivity[];
@@ -136,6 +146,7 @@ const emptyState: MockAppState = {
   profile: null,
   groups: [],
   groupMembers: [],
+  groupRituals: [],
   books: [],
   readingLogs: [],
   activities: [],
@@ -188,11 +199,40 @@ function normalizeGroupMember(member: Partial<MockGroupMember>): MockGroupMember
   };
 }
 
+function normalizeRitualCadence(cadence: unknown): MockGroupRitual["cadence"] {
+  if (
+    cadence === "monday" ||
+    cadence === "thursday" ||
+    cadence === "weekend" ||
+    cadence === "custom"
+  ) {
+    return cadence;
+  }
+
+  return "thursday";
+}
+
+function normalizeGroupRitual(ritual: Partial<MockGroupRitual>): MockGroupRitual {
+  const now = new Date().toISOString();
+
+  return {
+    id: ritual.id ?? crypto.randomUUID(),
+    groupId: ritual.groupId ?? "",
+    cadence: normalizeRitualCadence(ritual.cadence),
+    prompt: ritual.prompt ?? "Share one line, question, or moment worth returning to.",
+    focusNote:
+      ritual.focusNote ??
+      "A small rhythm for reading together. Join anywhere; quiet weeks still count.",
+    updatedAt: ritual.updatedAt ?? now
+  };
+}
+
 export function normalizeMockState(state: Partial<MockAppState>): MockAppState {
   return {
     ...emptyState,
     ...state,
     groupMembers: (state.groupMembers ?? []).map(normalizeGroupMember),
+    groupRituals: (state.groupRituals ?? []).map(normalizeGroupRitual),
     books: (state.books ?? []).map(normalizeBook)
   };
 }
@@ -259,11 +299,20 @@ export function createMockGroup(name: string, description: string) {
     currentBookTitle: getMostRecentBook(current)?.title ?? null,
     joinedAt: now
   };
+  const ritual: MockGroupRitual = {
+    id: crypto.randomUUID(),
+    groupId: group.id,
+    cadence: "thursday",
+    prompt: "Share one line, question, or moment worth returning to.",
+    focusNote: "A small rhythm for reading together. Join anywhere; quiet weeks still count.",
+    updatedAt: now
+  };
 
   const nextState = {
     ...current,
     groups: [group, ...current.groups],
-    groupMembers: [member, ...current.groupMembers]
+    groupMembers: [member, ...current.groupMembers],
+    groupRituals: [ritual, ...current.groupRituals]
   };
   writeMockState(nextState);
   return nextState;
@@ -289,12 +338,49 @@ export function joinMockGroup(inviteCode: string) {
     currentBookTitle: getMostRecentBook(current)?.title ?? null,
     joinedAt: now
   };
+  const ritual: MockGroupRitual = {
+    id: crypto.randomUUID(),
+    groupId: group.id,
+    cadence: "thursday",
+    prompt: "Share one line, question, or moment worth returning to.",
+    focusNote: "A small rhythm for reading together. Join anywhere; quiet weeks still count.",
+    updatedAt: now
+  };
 
   const nextState = {
     ...current,
     groups: [group, ...current.groups],
-    groupMembers: [member, ...current.groupMembers]
+    groupMembers: [member, ...current.groupMembers],
+    groupRituals: [ritual, ...current.groupRituals]
   };
+  writeMockState(nextState);
+  return nextState;
+}
+
+export function saveMockGroupRitual(input: {
+  groupId: string;
+  cadence: MockGroupRitual["cadence"];
+  prompt: string;
+  focusNote: string;
+}) {
+  const current = readMockState();
+  const existing = current.groupRituals.find((ritual) => ritual.groupId === input.groupId);
+  const ritual: MockGroupRitual = {
+    id: existing?.id ?? crypto.randomUUID(),
+    groupId: input.groupId,
+    cadence: input.cadence,
+    prompt: input.prompt,
+    focusNote: input.focusNote,
+    updatedAt: new Date().toISOString()
+  };
+  const nextState = {
+    ...current,
+    groupRituals: [
+      ritual,
+      ...current.groupRituals.filter((item) => item.groupId !== input.groupId)
+    ]
+  };
+
   writeMockState(nextState);
   return nextState;
 }

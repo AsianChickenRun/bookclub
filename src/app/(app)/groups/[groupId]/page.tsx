@@ -8,6 +8,7 @@ import {
   getRepository,
   type MockAppState,
   type MockGroupMember,
+  type MockGroupRitual,
   type SpoilerLevel
 } from "@/lib/persistence/repository";
 
@@ -29,6 +30,13 @@ const memberStatuses: { value: MockGroupMember["readingStatus"]; label: string }
   { value: "reading", label: "Reading" },
   { value: "checked_in", label: "Checked in" },
   { value: "quiet", label: "Quiet" }
+];
+
+const ritualCadences: { value: MockGroupRitual["cadence"]; label: string }[] = [
+  { value: "monday", label: "Monday check-in" },
+  { value: "thursday", label: "Thursday discussion" },
+  { value: "weekend", label: "Weekend reflection" },
+  { value: "custom", label: "Custom rhythm" }
 ];
 
 type BookSearchResult = {
@@ -89,10 +97,22 @@ export default function GroupRoomPage() {
   const [memberStatus, setMemberStatus] = useState<MockGroupMember["readingStatus"]>("reading");
   const [memberBookTitle, setMemberBookTitle] = useState("");
   const [showMemberForm, setShowMemberForm] = useState(false);
+  const [ritualCadence, setRitualCadence] = useState<MockGroupRitual["cadence"]>("thursday");
+  const [ritualPrompt, setRitualPrompt] = useState("");
+  const [ritualFocusNote, setRitualFocusNote] = useState("");
+  const [showRitualForm, setShowRitualForm] = useState(false);
 
   useEffect(() => {
-    getRepository().getState().then(setState);
-  }, []);
+    getRepository().getState().then((nextState) => {
+      setState(nextState);
+      const existingRitual = nextState.groupRituals.find((ritual) => ritual.groupId === groupId);
+      if (existingRitual) {
+        setRitualCadence(existingRitual.cadence);
+        setRitualPrompt(existingRitual.prompt);
+        setRitualFocusNote(existingRitual.focusNote);
+      }
+    });
+  }, [groupId]);
 
   const group = state?.groups.find((item) => item.id === groupId);
   const posts = useMemo(
@@ -122,9 +142,15 @@ export default function GroupRoomPage() {
       }
     ] satisfies MockGroupMember[];
   }, [currentBook?.title, group?.role, groupId, state]);
-  const sessionPrompt = currentBook
-    ? `What changed in your thinking while reading ${currentBook.title}?`
-    : "What would make this week's reading feel easier to return to?";
+  const roomRitual =
+    state?.groupRituals.find((ritual) => ritual.groupId === groupId) ?? {
+      id: "default-ritual",
+      groupId,
+      cadence: "thursday",
+      prompt: "Share one line, question, or moment worth returning to.",
+      focusNote: "A small rhythm for reading together. Join anywhere; quiet weeks still count.",
+      updatedAt: new Date().toISOString()
+    };
   const lastSeven = recentDateKeys(7);
   const groupCheckIns = activities.filter(
     (activity) => activity.type === "check_in" && lastSeven.includes(activity.createdAt.slice(0, 10))
@@ -197,6 +223,28 @@ export default function GroupRoomPage() {
     setMemberBookTitle("");
     setMemberStatus("reading");
     setMessage("Local member added to this room.");
+  }
+
+  async function handleRitualSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!ritualPrompt.trim()) {
+      setMessage("Add a ritual prompt before saving.");
+      return;
+    }
+
+    const nextState = await getRepository().saveGroupRitual({
+      groupId,
+      cadence: ritualCadence,
+      prompt: ritualPrompt.trim(),
+      focusNote:
+        ritualFocusNote.trim() ||
+        "A small rhythm for reading together. Join anywhere; quiet weeks still count."
+    });
+
+    setState(nextState);
+    setShowRitualForm(false);
+    setMessage("Room ritual saved.");
   }
 
   async function attachCatalogBook(book: BookSearchResult) {
@@ -350,7 +398,7 @@ export default function GroupRoomPage() {
 
           <dl className="mt-6 grid gap-3 sm:grid-cols-2">
             <div className="metric-card p-4">
-              <dt className="text-xs font-bold text-slate-500">Check-ins this week</dt>
+              <dt className="text-xs font-bold text-slate-500">Reading notes this week</dt>
               <dd className="mt-1 text-2xl font-black text-ink">{groupCheckIns.length}</dd>
             </div>
             <div className="metric-card p-4">
@@ -368,18 +416,78 @@ export default function GroupRoomPage() {
           </dl>
 
           <div className="room-card mt-6 p-4">
-            <p className="text-sm font-black text-ink">This week&apos;s room rhythm</p>
+            <p className="text-sm font-black text-ink">This week at the table</p>
             <ul className="mt-3 grid gap-2 text-sm leading-6 text-slate-700">
-              <li>Check in after reading, even if it is only a few pages.</li>
-              <li>Use progress-locked or explicit spoiler labels before posting plot details.</li>
-              <li>Reply to one person before starting a new thread.</li>
+              <li>Settle in: what do you want to notice as you read this week?</li>
+              <li>Leave a page note: share one line, question, or moment worth returning to.</li>
+              <li>Close the week: what stayed with you after reading?</li>
             </ul>
           </div>
 
           <div className="room-card mt-4 p-4">
-            <p className="text-sm font-black text-ink">Session prompt</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">{sessionPrompt}</p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-ink">Table prompt</p>
+                <p className="mt-1 text-xs font-bold text-slate-500">
+                  {ritualCadences.find((item) => item.value === roomRitual.cadence)?.label}
+                </p>
+              </div>
+              <button
+                className="text-sm font-bold text-[#315c48]"
+                onClick={() => {
+                  setRitualCadence(roomRitual.cadence);
+                  setRitualPrompt(roomRitual.prompt);
+                  setRitualFocusNote(roomRitual.focusNote);
+                  setShowRitualForm((current) => !current);
+                }}
+                type="button"
+              >
+                {showRitualForm ? "Close" : "Edit ritual"}
+              </button>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-700">{roomRitual.prompt}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{roomRitual.focusNote}</p>
           </div>
+
+          {showRitualForm ? (
+            <form className="room-card mt-3 grid gap-3 p-4" onSubmit={handleRitualSave}>
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Rhythm
+                <select
+                  className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                  onChange={(event) =>
+                    setRitualCadence(event.target.value as MockGroupRitual["cadence"])
+                  }
+                  value={ritualCadence}
+                >
+                  {ritualCadences.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Prompt
+                <textarea
+                  className="min-h-20 rounded-app border border-[#dedbd2] px-3 py-2"
+                  onChange={(event) => setRitualPrompt(event.target.value)}
+                  value={ritualPrompt}
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Focus note
+                <input
+                  className="min-h-11 rounded-app border border-[#dedbd2] px-3"
+                  onChange={(event) => setRitualFocusNote(event.target.value)}
+                  value={ritualFocusNote}
+                />
+              </label>
+              <button className="secondary-button justify-self-start" type="submit">
+                Save ritual
+              </button>
+            </form>
+          ) : null}
 
           <div className="mt-6">
             <p className="text-sm font-black text-ink">Local room roster</p>
@@ -787,7 +895,7 @@ export default function GroupRoomPage() {
               <div className="room-card p-5">
                 <h3 className="font-black text-ink">No threads yet</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-700">
-                  Start the first discussion above so this room has a focused place for replies.
+                  No room notes yet. Start with this week&apos;s table prompt, or leave a quiet reply when you are ready.
                 </p>
               </div>
             )}
@@ -798,11 +906,11 @@ export default function GroupRoomPage() {
         <section className="soft-card p-5 xl:col-span-2">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="eyebrow">Room activity</p>
-              <h2 className="mt-3 text-xl font-black text-ink">Recent room notes</h2>
+              <p className="eyebrow">Room notes</p>
+              <h2 className="mt-3 text-xl font-black text-ink">Recent notes</h2>
             </div>
             <span className="warm-pill">
-              {activities.length} updates
+              {activities.length} notes
             </span>
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
